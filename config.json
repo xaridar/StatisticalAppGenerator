@@ -1,0 +1,12 @@
+{
+    "options": [
+        {
+            "name": "distribution",
+            "type": "select",
+            "options": [
+                "normal",
+                "gamma"
+            ]
+        }
+    ]
+}
