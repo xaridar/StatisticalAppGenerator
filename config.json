@@ -2,6 +2,7 @@
     "options": [
         {
             "name": "distribution",
+            "description": "testing!",
             "type": "select",
             "options": [
                 "normal",

@@ -12,6 +12,7 @@ config_schema = {
                         'additionalProperties': False,
                         'properties': {
                             'name': {'type': 'string'},
+                            'description': {'type': 'string'},
                             'type': {'const': 'text'},
                             'optional': {
                                 'type': 'boolean',
@@ -26,24 +27,26 @@ config_schema = {
                                 'default': None
                             }
                         },
-                        'required': ['name', 'type']
+                        'required': ['name', 'description', 'type']
                     },
                     {
                         'additionalProperties': False,
                         'properties': {
                             'name': {'type': 'string'},
+                            'description': {'type': 'string'},
                             'type': {'const': 'checkbox'},
                             'optional': {
                                 'type': 'boolean',
                                 'default': False
                             }
                         },
-                        'required': ['name', 'type']
+                        'required': ['name', 'description', 'type']
                     },
                     {
                         'additionalProperties': False,
                         'properties': {
                             'name': {'type': 'string'},
+                            'description': {'type': 'string'},
                             'type': {'const': 'number'},
                             'optional': {
                                 'type': 'boolean',
@@ -62,12 +65,13 @@ config_schema = {
                                 'default': False
                             }
                         },
-                        'required': ['name', 'type']
+                        'required': ['name', 'description', 'type']
                     },
                     {
                         'additionalProperties': False,
                         'properties': {
                             'name': {'type': 'string'},
+                            'description': {'type': 'string'},
                             'type': {'const': 'select'},
                             'optional': {
                                 'type': 'boolean',
@@ -82,7 +86,7 @@ config_schema = {
                                 'default': False
                             }
                         },
-                        'required': ['name', 'type', 'options']
+                        'required': ['name', 'description', 'type', 'options']
                     }
                 ]
             },
