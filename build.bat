@@ -1,0 +1,1 @@
+pyinstaller generate_app.py --add-data ./template:./template -F --clean

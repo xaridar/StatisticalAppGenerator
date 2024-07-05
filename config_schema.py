@@ -18,6 +18,10 @@ config_schema = {
                                 'type': 'boolean',
                                 'default': False
                             },
+                            'pattern': {
+                                'type': 'string',
+                                'default': None
+                            },
                             'minlength': {
                                 'type': 'number',
                                 'default': 0

@@ -5,7 +5,7 @@ import json
 from jsonschema import validate, ValidationError
 from config_schema import config_schema
 from bs4 import BeautifulSoup
-from shutil import copytree
+from shutil import copytree, rmtree
 
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
 outp_path = './app'
@@ -101,7 +101,7 @@ def createInput(html, options):
             for option in options['options']:
                 option_el = html.new_tag('option')
                 option_el['value'] = option
-                option_el.text = option
+                option_el.string = option
                 input.append(option_el)
 
     label = html.new_tag('label')
@@ -131,5 +131,22 @@ if __name__ == '__main__':
     print(cf)
     
     # copies 'template' directory (in executable) to new 'app' directory
+    if os.path.exists(outp_path):
+        rmtree(outp_path)
     copytree(inp_path, outp_path)
+
+    # reads existing HTML template
+    with open(os.path.join(inp_path, 'templates/index.html')) as file:
+        html = BeautifulSoup(file.read(), 'html.parser')
     
+    # adds necessary options to templates/index.html
+    form = html.find('form', class_="calcForm")
+    for i, option in enumerate(cf['options']):
+        div = createInput(html, option)
+        form.insert(i, div)
+        print(form)
+        
+    # writes output
+    with open(os.path.join(outp_path, 'templates/index.html'), 'w') as file:
+        print(html.prettify())
+        file.write(html.prettify())
