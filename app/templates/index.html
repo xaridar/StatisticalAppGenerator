@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<form action="/" class="calcForm" method="post">
+ <div>
+  <label for="distribution_inp">
+   testing!
+  </label>
+  <select class="required" id="distribution_inp" name="distribution">
+   <option value="normal">
+    normal
+   </option>
+   <option value="gamma">
+    gamma
+   </option>
+  </select>
+ </div>
+ <div class="file-ctr">
+  <input class="file" name="file" type="file"/>
+  <canvas class="filechart">
+  </canvas>
+ </div>
+ <button type="submit">
+  Submit
+ </button>
+</form>
+<pre id="output"></pre>
+{% endblock %}
