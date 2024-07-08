@@ -1,0 +1,174 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "definitions": {
+        "option": {
+            "type": "object",
+            "anyOf": [
+                {
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {"type": "string"},
+                        "description": {"type": "string"},
+                        "type": {"const": "text"},
+                        "optional": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "pattern": {
+                            "type": "string",
+                            "default": null
+                        },
+                        "minlength": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "maxlength": {
+                            "type": "number",
+                            "default": null
+                        }
+                    },
+                    "required": ["name", "description", "type"]
+                },
+                {
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {"type": "string"},
+                        "description": {"type": "string"},
+                        "type": {"const": "checkbox"},
+                        "optional": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "required": ["name", "description", "type"]
+                },
+                {
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {"type": "string"},
+                        "description": {"type": "string"},
+                        "type": {"const": "number"},
+                        "optional": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "min": {
+                            "type": "number",
+                            "default": null
+                        },
+                        "max": {
+                            "type": "number",
+                            "default": null
+                        },
+                        "integer": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "required": ["name", "description", "type"]
+                },
+                {
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {"type": "string"},
+                        "description": {"type": "string"},
+                        "type": {"const": "select"},
+                        "optional": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "options": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "text": {"type": "string"},
+                                    "value": {"type": "string"}
+                                }
+                            }
+                        },
+                        "multiselect": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "required": ["name", "description", "type", "options"]
+                },
+                {
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {"const": "option_group"},
+                        "header": {
+                            "type": "string",
+                            "default": ""
+                        },
+                        "id": {"type": "string"},
+                        "options": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/option"
+                            }
+                        }
+                    },
+                    "required": ["type", "id", "options"]
+                }
+            ]
+        }
+    },
+    "properties": {
+        "options": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/option"
+            },
+            "default": []
+        },
+        "settings": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "input_file": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "graph_input": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "files": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "x_param": {
+                                        "type": "string",
+                                        "default": "x"
+                                    },
+                                    "y_param": {
+                                        "type": "string",
+                                        "default": "y"
+                                    },
+                                    "optional": {
+                                        "type": "boolean",
+                                        "default": false
+                                    }
+                                },
+                                "required": ["name"]
+                            },
+                            "default": [{"name": "file", "x_param": "x", "y_param": "y", "optional": false}]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

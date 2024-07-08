@@ -1,3 +1,11 @@
+let tab = 0;
+
+const changeTab = (tabNum) => {
+    tab = tabNum;
+    $('.tab').addClass('hidden');
+    $(`.tab:nth-child(${tabNum + 1})`).removeClass('hidden');
+}
+
 $(() => {
     $(document).on('change', '.file', function() {
         // replace canvas
@@ -8,15 +16,24 @@ $(() => {
 
         // check file
         const file = $(this).prop('files')[0];
-        if (file == undefined || file.name == '' || file.type != 'text/csv') return;
+        if (file == undefined || file.name == '' || file.type != 'text/csv') {
+            // bad file
+            $(this).val('');
+            return;
+        }
 
         // read CSV file contents
         const reader = new FileReader();
         reader.onload = (e) => {
             const csv = e.target.result;
             const converted = $.csv.toObjects(csv);
-            const labels = converted.map(arr => arr.group);
-            const values = converted.map(arr => arr.y);
+            const labels = converted.map(arr => arr[this.dataset.xLabel]);
+            const values = converted.map(arr => arr[this.dataset.yLabel]);
+            if (labels[0] === undefined || values[0] === undefined) {
+                // bad file
+            $(this).val('');
+                return;
+            }
             
             // show chart    
             const ctx = canvas.getContext('2d');
@@ -39,13 +56,13 @@ $(() => {
                     scales: {
                         x: {
                             title: {
-                                text: 'group',
+                                text: this.dataset.xLabel,
                                 display: true,
                             }
                         },
                         y: {
                             title: {
-                                text: 'y',
+                                text: this.dataset.yLabel,
                                 display: true,
                             }
                         }
@@ -70,7 +87,18 @@ $(() => {
             processData: false,
         });
         console.log(res);
-        if (res.success) $(this).siblings('#output').text(res.data);
-        else $(this).siblings('#output').text('');
+        if (res.success) {
+            const newTab = $(document.createElement('div'));
+            newTab.addClass('tab');
+            const pre = document.createElement('pre');
+            pre.textContent = res.data;
+            newTab.append(pre);
+            $('#tabs').append(newTab[0]);
+            changeTab(newTab.index());
+        }
+    });
+
+    $(document).on('click', '.tab-handle', function () {
+        changeTab($(this).parent('.tab').index());
     });
 });

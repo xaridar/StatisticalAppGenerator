@@ -3,7 +3,6 @@ import os
 import argparse as ap
 import json
 from jsonschema import validate, ValidationError
-from config_schema import config_schema
 from bs4 import BeautifulSoup
 from shutil import copytree, rmtree
 
@@ -31,14 +30,20 @@ def check_paths():
 
 # uses 'default' values in schema to produce default config variables
 def fillDefaults(obj, schema):
+    if '$ref' in schema:
+        path = schema['$ref'][2:].split('/')
+        internal = config_schema
+        for ele in path:
+            internal = internal[ele]
+        schema = {**{x: schema[x] for x in schema.keys() if x != '$ref'}, **internal}
     if 'anyOf' in schema:
+        objType = obj['type']
         for opt in schema['anyOf']:
+            interType = opt['properties']['type']['const']
             inter_schema = {**{x: schema[x] for x in schema.keys() if x != 'anyOf'}, **opt}
-            try:
-                validate(obj, schema)
-            except ValidationError:
-                continue
             
+            if interType != objType:
+                continue
             schema = inter_schema
             break
     if 'type' in schema:
@@ -58,15 +63,15 @@ def fillDefaults(obj, schema):
                 pass
     return obj
 
-def parseConfigToObj(cf):
+def parseConfigToObj(cf, schema):
     config = json.load(cf)
     try:
-        val = validate(config, config_schema)
+        val = validate(config, schema)
     except ValidationError as e:
         print('Invalid config file: ' + e.message)
         return None
     
-    return fillDefaults(config, config_schema)
+    return fillDefaults(config, schema)
 
 def createInput(html, options):
     match(options['type']):
@@ -100,17 +105,49 @@ def createInput(html, options):
                 input['class'] = 'required'
             for option in options['options']:
                 option_el = html.new_tag('option')
-                option_el['value'] = option
-                option_el.string = option
+                option_el['value'] = option['value']
+                option_el.string = option['text']
                 input.append(option_el)
+        case 'option_group':
+            input = html.new_tag('div')
+            input['id'] = options['id']
+            input['class'] = 'option-group'
+            if options['header'] != '':
+                span = html.new_tag('span')
+                span.string = options['header']
+                input.append(span)
+            for option in options['options']:
+                inp = createInput(html, option)
+                input.append(inp)
 
-    label = html.new_tag('label')
-    label['for'] = f'{options['name']}_inp'
-    label.string = options['description']
     div = html.new_tag('div')
-    div.append(label)
+    div['class'] = 'option'
+    if 'description' in options and options['description'] != '':
+        label = html.new_tag('label')
+        label['for'] = f'{options['name']}_inp'
+        label.string = options['description']
+        div.append(label)
     div.append(input)
     return div
+
+def createFileInput(html, options, graph):
+    input = html.new_tag('input')
+    input['type'] = 'file'
+    input['id'] = f'{options['name']}_inp'
+    input['class'] = 'file'
+    input['name'] = options['name']
+    if not options['optional']:
+        input['class'] += ' required'
+    input['data-x-label'] = options['x_param']
+    input['data-y-label'] = options['y_param']
+    ctr = html.new_tag('div')
+    ctr['class'] = 'file-ctr'
+    ctr.append(input)
+    if graph:
+        canvas = html.new_tag('canvas')
+        canvas['class'] = 'filechart'
+        ctr.append(canvas)
+    return ctr
 
 if __name__ == '__main__':
     parser = ap.ArgumentParser(prog='Statistical App Generator', description='Generates a stats web app from a template')
@@ -119,16 +156,19 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    with open('./schema.json') as jsonschema:
+        config_schema = json.load(jsonschema)
+
     check_paths()
     if args.config is not None:
         with open(args.config) as cf:
-            cf = parseConfigToObj(cf)
+            cf = parseConfigToObj(cf, config_schema)
             if cf is None:
                 sys.exit(0)
     else:
         cf = fillDefaults({}, config_schema)
 
-    print(cf)
+    print(json.dumps(cf, indent=4))
     
     # copies 'template' directory (in executable) to new 'app' directory
     if os.path.exists(outp_path):
@@ -141,12 +181,17 @@ if __name__ == '__main__':
     
     # adds necessary options to templates/index.html
     form = html.find('form', class_="calcForm")
+
     for i, option in enumerate(cf['options']):
         div = createInput(html, option)
         form.insert(i, div)
-        print(form)
+
+    if cf['settings']['input_file']['enabled']:
+        graph = cf['settings']['input_file']['graph_input']
+        for i, option in enumerate(cf['settings']['input_file']['files']):
+            div = createFileInput(html, option, graph)
+            form.insert(i, div)
         
     # writes output
     with open(os.path.join(outp_path, 'templates/index.html'), 'w') as file:
-        print(html.prettify())
         file.write(html.prettify())

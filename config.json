@@ -5,9 +5,60 @@
             "description": "testing!",
             "type": "select",
             "options": [
-                "normal",
-                "gamma"
+                {"text": "Normal", "value": "normal"},
+                {"text": "Gamma", "value": "gamma"},
+                {"text": "Poisson", "value": "poisson"},
+                {"text": "Bernoulli", "value": "bernoulli"}
+            ]
+        },
+        {
+            "type": "option_group",
+            "id": "beta",
+            "options": [
+                {
+                    "name": "beta0",
+                    "description": "Beta 0",
+                    "type": "number"
+                },
+                {
+                    "name": "beta1",
+                    "description": "Beta 1",
+                    "type": "number"
+                },
+                {
+                    "name": "beta2",
+                    "description": "Beta 2",
+                    "type": "number"
+                },
+                {
+                    "name": "beta3",
+                    "description": "Beta 3",
+                    "type": "number"
+                },
+                {
+                    "name": "beta4",
+                    "description": "Beta 4",
+                    "type": "number"
+                }
             ]
         }
-    ]
+    ],
+    "settings": {
+        "input_file": {
+            "files": [
+                {
+                    "name": "file1",
+                    "optional": true,
+                    "x_param": "x",
+                    "y_param": "y"
+                },
+                {
+                    "name": "file2",
+                    "optional": false,
+                    "x_param": "group",
+                    "y_param": "y"
+                }
+            ]
+        }
+    }
 }

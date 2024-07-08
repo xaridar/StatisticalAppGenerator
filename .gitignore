@@ -1,3 +1,6 @@
 .venv/
 __pycache__/
 app
+build
+dist
+*.spec
