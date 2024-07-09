@@ -1,76 +1,77 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
+<div id="tabHandles">
+	<span data-tab="0" class="tab-handle active">Input</span>
+</div>
 <div id="tabs">
- <div class="tab" data-tab-name="Input">
-  <form action="/" class="calcForm" method="post">
-   <div class="file-ctr">
-    <input class="file" data-x-label="x" data-y-label="y" id="file1_inp" name="file1" type="file"/>
-    <canvas class="filechart">
-    </canvas>
-   </div>
-   <div class="file-ctr">
-    <input class="file required" data-x-label="group" data-y-label="y" id="file2_inp" name="file2" type="file"/>
-    <canvas class="filechart">
-    </canvas>
-   </div>
-   <div class="option">
-    <label for="distribution_inp">
-     testing!
-    </label>
-    <select class="required" id="distribution_inp" name="distribution">
-     <option value="normal">
-      Normal
-     </option>
-     <option value="gamma">
-      Gamma
-     </option>
-     <option value="poisson">
-      Poisson
-     </option>
-     <option value="bernoulli">
-      Bernoulli
-     </option>
-    </select>
-   </div>
-   <div class="option">
-    <div class="option-group" id="beta">
-     <div class="option">
-      <label for="beta0_inp">
-       Beta 0
-      </label>
-      <input class="required" id="beta0_inp" name="beta0" type="number"/>
-     </div>
-     <div class="option">
-      <label for="beta1_inp">
-       Beta 1
-      </label>
-      <input class="required" id="beta1_inp" name="beta1" type="number"/>
-     </div>
-     <div class="option">
-      <label for="beta2_inp">
-       Beta 2
-      </label>
-      <input class="required" id="beta2_inp" name="beta2" type="number"/>
-     </div>
-     <div class="option">
-      <label for="beta3_inp">
-       Beta 3
-      </label>
-      <input class="required" id="beta3_inp" name="beta3" type="number"/>
-     </div>
-     <div class="option">
-      <label for="beta4_inp">
-       Beta 4
-      </label>
-      <input class="required" id="beta4_inp" name="beta4" type="number"/>
-     </div>
-    </div>
-   </div>
-   <button type="submit">
-    Submit
-   </button>
-  </form>
- </div>
+	<div class="tab active" data-tab="0">
+		<form action="/" class="calcForm" method="post">
+			<div class="file-ctr">
+				<input class="file" data-x-label="x" data-y-label="y" id="file1_inp" name="file1" type="file"/>
+			</div>
+			<div class="file-ctr">
+				<input class="file required" data-x-label="group" data-y-label="y" id="file2_inp" name="file2" type="file"/>
+				<canvas class="filechart">
+				</canvas>
+			</div>
+			<div class="option">
+				<select class="required" id="distribution_inp" name="distribution">
+					<option value="normal">
+						Normal
+					</option>
+					<option value="gamma">
+						Gamma
+					</option>
+					<option value="poisson">
+						Poisson
+					</option>
+					<option value="bernoulli">
+						Bernoulli
+					</option>
+				</select>
+				<label for="distribution_inp">
+					testing!
+				</label>
+			</div>
+			<div class="option">
+				<div class="option-group" id="beta">
+					<div class="option">
+						<input class="required" id="beta0_inp" name="beta0" type="number"/>
+						<label for="beta0_inp">
+							Beta 0
+						</label>
+					</div>
+					<div class="option">
+						<input class="required" id="beta1_inp" name="beta1" type="number"/>
+						<label for="beta1_inp">
+							Beta 1
+						</label>
+					</div>
+					<div class="option">
+						<input class="required" id="beta2_inp" name="beta2" type="number"/>
+						<label for="beta2_inp">
+							Beta 2
+						</label>
+					</div>
+					<div class="option">
+						<input class="required" id="beta3_inp" name="beta3" type="number"/>
+						<label for="beta3_inp">
+							Beta 3
+						</label>
+					</div>
+					<div class="option">
+						<input class="required" id="beta4_inp" name="beta4" type="number"/>
+						<label for="beta4_inp">
+							Beta 4
+						</label>
+					</div>
+				</div>
+			</div>
+			<button type="submit">
+				Submit
+			</button>
+		</form>
+	</div>
 </div>
 {% endblock %}

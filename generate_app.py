@@ -4,6 +4,7 @@ import argparse as ap
 import json
 from jsonschema import validate, ValidationError
 from bs4 import BeautifulSoup
+from bs4.formatter import HTMLFormatter
 from shutil import copytree, rmtree
 
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
@@ -122,12 +123,12 @@ def createInput(html, options):
 
     div = html.new_tag('div')
     div['class'] = 'option'
+    div.append(input)
     if 'description' in options and options['description'] != '':
         label = html.new_tag('label')
         label['for'] = f'{options['name']}_inp'
         label.string = options['description']
         div.append(label)
-    div.append(input)
     return div
 
 def createFileInput(html, options, graph):
@@ -178,6 +179,8 @@ if __name__ == '__main__':
     # reads existing HTML template
     with open(os.path.join(inp_path, 'templates/index.html')) as file:
         html = BeautifulSoup(file.read(), 'html.parser')
+    with open(os.path.join(inp_path, 'templates/base.html')) as file:
+        base_html = BeautifulSoup(file.read(), 'html.parser')
     
     # adds necessary options to templates/index.html
     form = html.find('form', class_="calcForm")
@@ -191,7 +194,14 @@ if __name__ == '__main__':
         for i, option in enumerate(cf['settings']['input_file']['files']):
             div = createFileInput(html, option, graph)
             form.insert(i, div)
+
+    # set color theme
+    body = base_html.find('body')
+    body['color'] = cf['settings']['themeColor']
         
     # writes output
+    formatter = HTMLFormatter(indent=4)
     with open(os.path.join(outp_path, 'templates/index.html'), 'w') as file:
-        file.write(html.prettify())
+        file.write(html.prettify(formatter=formatter))
+    with open(os.path.join(outp_path, 'templates/base.html'), 'w') as file:
+        file.write(base_html.prettify(formatter=formatter))

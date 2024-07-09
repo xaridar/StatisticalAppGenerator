@@ -130,6 +130,11 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
+                "themeColor": {
+                    "type": "string",
+                    "enum": ["light", "dark", "red", "blue", "green"],
+                    "default": "light"
+                },
                 "input_file": {
                     "type": "object",
                     "additionalProperties": false,

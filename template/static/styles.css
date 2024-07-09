@@ -1,21 +1,110 @@
+body, body[color="light"] {
+    --background-color:;
+    --tab-color-inactive:;
+    --tab-ctr-color:;
+    --font-color:;
+}
+
+body[color="dark"] {
+    --background-color:#172a4a;
+    --tab-color-inactive:#101b2e;
+    --tab-ctr-color:#13161a;
+    --font-color:#9e9e9e;
+}
+
+body[color="red"] {
+    --background-color:;
+    --tab-color-inactive:;
+    --tab-ctr-color:;
+    --font-color:;
+}
+
+body[color="blue"] {
+    --background-color:;
+    --tab-color-inactive:;
+    --tab-ctr-color:;
+    --font-color:;
+}
+
+body[color="green"] {
+    --background-color:;
+    --tab-color-inactive:;
+    --tab-ctr-color:;
+    --font-color:;
+}
+
 body {
     min-height: 100vh;
     margin: 0;
+    background-color: var(--background-color);
+    color: var(--font-color);
 }
 
-#tabs, .tab {
-    width: 100%;
-    min-height: 100vh;
+.file.required::after, .required + label::after {
+    content: '*';
+    color: red;
+}
+
+#tabHandles {
+    top: 0;
+    margin: 0;
+    display: flex;
+    align-items: start;
+    flex-wrap: wrap;
+    background-color: var(--tab-ctr-color);
+    padding-left: 1rem;
 }
 
 .filechart {
     display: none
 }
 
-.hidden {
+.tab:not(.active) {
     display: none;
 }
 
 .tab {
-    
+    padding: 1rem;
+}
+
+.tab-handle {
+    margin-top: 1rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border-bottom: 0;
+    background-color: var(--tab-color-inactive);
+    padding: 0.35rem 1rem;
+    padding-inline-end: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tab-handle:first-child {
+    padding-inline-end: 1rem;
+}
+
+.tab-handle .close {
+    visibility: hidden;
+    font-size: 1rem;
+    padding: 0.25rem;
+    border-radius: 0.33rem;
+    transition: background-color 0.1s ease;
+}
+
+.tab-handle .close:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.tab-handle:hover .close {
+    visibility: initial;
+}
+
+.tab-handle.active {
+    background-color: var(--background-color);
+}
+
+.tab-handle.active .close {
+    visibility: initial;
 }
