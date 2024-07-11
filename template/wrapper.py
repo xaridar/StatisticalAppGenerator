@@ -35,13 +35,14 @@ method_name = args[2]
 id = args[3]
 
 as_obj = convert_to_obj(args[4:])
+as_obj['files'] = {}
 
-file_names = [file for file in os.listdir() if file.endswith(f'_{id}.csv')]
+file_names = [file for file in os.listdir('temp') if file.endswith(f'_{id}.csv')]
 for file in file_names:
-    with open(file) as f:
+    with open(os.path.join('temp', file)) as f:
         csv = pd.read_csv(f)
         name = file.rsplit('_')[0]
-        as_obj[name] = csv
+        as_obj['files'][name] = csv
 
 method = load_as_module(filename).__getattribute__(method_name)
 print(method(as_obj))

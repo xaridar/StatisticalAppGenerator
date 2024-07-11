@@ -41,6 +41,7 @@ def upload():
         if os.getenv(f'XVAR_{file.name}') not in csv.columns or os.getenv(f'YVAR_{file.name}') not in csv.columns:
             return jsonify(success=False, error=f'Missing column(s) in {file.filename}; should have {os.getenv(f'XVAR_{file.name}')} and {os.getenv(f'YVAR_{file.name}')}')
         filename = f'{file.name}_{id}.csv'
+        file.stream.seek(0)
         file.save(os.path.join('temp', filename))
         filepaths.append(os.path.join('temp', filename))
     for option in request.form:
@@ -54,14 +55,14 @@ def upload():
             args.append(f'-{option}')
             args.append(request.form.get(option))
     
-    command = f'{os.getenv('LANGUAGE')} calculation.{os.getenv('EXTENSION')} {os.getenv('METHOD')} {id}'
+    command = f'{os.getenv('LANGUAGE')} wrapper.{os.getenv('EXTENSION')} calculation.{os.getenv('EXTENSION')} {os.getenv('METHOD')} {id}'
     args = command.split(' ') + args
     res = subprocess.check_output(args)
     for file in filepaths:
         os.remove(file)
-    print('res: ' + res)
+    print(res)
         
-    return jsonify(success=True, data='')
+    return jsonify(success=True, data=res.decode('UTF-8'))
 
 if __name__ == '__main__':
     app.run()
