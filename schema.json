@@ -135,6 +135,16 @@
                     "enum": ["light", "dark", "red", "blue", "green"],
                     "default": "light"
                 },
+                "output": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "function_name": {
+                            "type": "string",
+                            "default": "calc"
+                        }
+                    }
+                },
                 "input_file": {
                     "type": "object",
                     "additionalProperties": false,

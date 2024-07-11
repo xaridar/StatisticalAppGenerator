@@ -5,7 +5,7 @@ import json
 from jsonschema import validate, ValidationError
 from bs4 import BeautifulSoup
 from bs4.formatter import HTMLFormatter
-from shutil import copytree, rmtree
+from shutil import copytree, rmtree, copyfile
 
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
 outp_path = './app'
@@ -16,18 +16,21 @@ def check_paths():
         with open(args.math_filepath) as math_file:
             ext = math_file.name.split('.')[-1]
             if ext not in ['py', 'r']:
-                raise 'bad filetype'
-    except FileNotFoundError | 'bad filetype':
+                raise Exception('bad filetype')
+    except (Exception):
         print('Math file must be a valid .r or .py path')
+        return False
 
     if args.config is not None:
         try:
             with open(args.config) as cf:
                 ext = cf.name.split('.')[-1]
                 if ext != 'json':
-                    raise 'bad filetype'
-        except FileNotFoundError | 'bad filetype':
+                    raise Exception('bad filetype')
+        except (Exception):
             print('Config file must be a valid .json path')
+            return False
+    return True
 
 # uses 'default' values in schema to produce default config variables
 def fillDefaults(obj, schema):
@@ -67,7 +70,7 @@ def fillDefaults(obj, schema):
 def parseConfigToObj(cf, schema):
     config = json.load(cf)
     try:
-        val = validate(config, schema)
+        validate(config, schema)
     except ValidationError as e:
         print('Invalid config file: ' + e.message)
         return None
@@ -104,6 +107,10 @@ def createInput(html, options):
             input['name'] = options['name']
             if not options['optional']:
                 input['class'] = 'required'
+            def_el = html.new_tag('option')
+            def_el['disabled'] = ''
+            def_el['value'] = ''
+            def_el['selected'] = ''
             for option in options['options']:
                 option_el = html.new_tag('option')
                 option_el['value'] = option['value']
@@ -129,6 +136,13 @@ def createInput(html, options):
         label['for'] = f'{options['name']}_inp'
         label.string = options['description']
         div.append(label)
+    if options['type'] == 'checkbox':
+        hidden = html.new_tag('input')
+        hidden['type'] = 'hidden'
+        hidden['name'] = options['name']
+        hidden['value'] = 'false'
+        input['value'] = 'true'
+        div.append(hidden)
     return div
 
 def createFileInput(html, options, graph):
@@ -152,15 +166,16 @@ def createFileInput(html, options, graph):
 
 if __name__ == '__main__':
     parser = ap.ArgumentParser(prog='Statistical App Generator', description='Generates a stats web app from a template')
-    parser.add_argument('math_filepath')
-    parser.add_argument('-c', '--config')
+    parser.add_argument('math_filepath', help="Path to a .py or .r file, containing a function (named 'calc' unless otherwise specified in config), which does math given an argument object and outputs an object")
+    parser.add_argument('-c', '--config', help="Path to a .JSON file (format in schema.json) for app configuration")
 
     args = parser.parse_args()
 
     with open('./schema.json') as jsonschema:
         config_schema = json.load(jsonschema)
 
-    check_paths()
+    if not check_paths():
+        sys.exit(1)
     if args.config is not None:
         with open(args.config) as cf:
             cf = parseConfigToObj(cf, config_schema)
@@ -175,6 +190,24 @@ if __name__ == '__main__':
     if os.path.exists(outp_path):
         rmtree(outp_path)
     copytree(inp_path, outp_path)
+
+    # copies math file into app
+    copyfile(args.math_filepath, os.path.join(outp_path, f'calculation.{args.math_filepath.split('.')[-1]}'))
+
+    # creates generated .env file
+    env_vars = {
+        'METHOD': cf['settings']['output']['function_name'],
+        'LANGUAGE': 'python' if args.math_filepath.split('.')[-1] == 'py' else 'Rscript',
+        'EXTENSION': args.math_filepath.split('.')[-1]
+    }
+
+    if cf['settings']['input_file']['enabled']:
+        for option in cf['settings']['input_file']['files']:
+            env_vars[f'XVAR_{option['name']}'] = option['x_param']
+            env_vars[f'YVAR_{option['name']}'] = option['y_param']
+
+    with open(os.path.join(outp_path, '.env'), 'w') as file:
+        file.write('\n'.join([f'{kv[0]}="{kv[1]}"' for kv in env_vars.items()]))
 
     # reads existing HTML template
     with open(os.path.join(inp_path, 'templates/index.html')) as file:

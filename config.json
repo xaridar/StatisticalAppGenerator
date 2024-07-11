@@ -1,8 +1,8 @@
 {
     "options": [
         {
-            "name": "distribution",
-            "description": "testing!",
+            "name": "test_select",
+            "description": "select",
             "type": "select",
             "options": [
                 {"text": "Normal", "value": "normal"},
@@ -12,35 +12,19 @@
             ]
         },
         {
-            "type": "option_group",
-            "id": "beta",
-            "options": [
-                {
-                    "name": "beta0",
-                    "description": "Beta 0",
-                    "type": "number"
-                },
-                {
-                    "name": "beta1",
-                    "description": "Beta 1",
-                    "type": "number"
-                },
-                {
-                    "name": "beta2",
-                    "description": "Beta 2",
-                    "type": "number"
-                },
-                {
-                    "name": "beta3",
-                    "description": "Beta 3",
-                    "type": "number"
-                },
-                {
-                    "name": "beta4",
-                    "description": "Beta 4",
-                    "type": "number"
-                }
-            ]
+            "name": "test_check",
+            "type": "checkbox",
+            "description": "check"
+        },
+        {
+            "name": "test_text",
+            "type": "text",
+            "description": "text"
+        },
+        {
+            "name": "test_number",
+            "type": "number",
+            "description": "number"
         }
     ],
     "settings": {
@@ -59,6 +43,7 @@
                     "y_param": "y"
                 }
             ]
-        }
+        },
+        "themeColor": "dark"
     }
 }
