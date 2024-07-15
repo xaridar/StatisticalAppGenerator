@@ -60,7 +60,6 @@ def upload():
     res = subprocess.check_output(args)
     for file in filepaths:
         os.remove(file)
-    print(res)
         
     return jsonify(success=True, data=res.decode('UTF-8'))
 
