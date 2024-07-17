@@ -34,7 +34,10 @@ filename = args[1]
 method_name = args[2]
 id = args[3]
 
-as_obj = convert_to_obj(args[4:])
+if len(args) > 4:
+    as_obj = convert_to_obj(args[4:])
+else:
+    args_obj = {}
 as_obj['files'] = {}
 
 file_names = [file for file in os.listdir('temp') if file.endswith(f'_{id}.csv')]

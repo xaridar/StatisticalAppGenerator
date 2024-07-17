@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<div id="tabHandles">
-	<span data-tab="0" class="tab-handle active">Input<i class="material-icons close">close</i></span>
+<div id="handlesCtr">
+    <div>
+        <i id="tabsLeft" class="material-icons active moreTabs">navigate_before</i>
+        <div id="tabHandles">
+            <span class="tab-handle active input-tab" data-tab="0" draggable="true">
+                Input
+            </span>
+        </div>
+    </div>
+    <div><i id="tabsRight" class="material-icons active moreTabs">navigate_next</i></div>
 </div>
 <div id="tabs">
-	<div class="tab active" data-tab="0">
-		<form action="/" class="calcForm" method="post">
-			<button type="submit">
-				Submit
-			</button>
-		</form>
-	</div>
+    <div class="tab active" data-tab="0">
+        <form action="/" class="calcForm" method="post">
+            <button type="submit">
+                Submit
+            </button>
+        </form>
+    </div>
 </div>
 {% endblock %}

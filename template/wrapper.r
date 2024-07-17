@@ -29,7 +29,12 @@ args <- commandArgs(trailingOnly = TRUE)
 filename <- args[1]
 method_name <- args[2]
 id <- args[3]
-args_obj <- parse_args(args[4:length(args)])
+
+if (length(args) > 4) {
+  args_obj <- parse_args(args[4:length(args)])
+} else {
+  args_obj <- list()
+}
 
 load_file <- function(file, files_obj) {
   csv <- read.csv(file.path("temp", file), header = TRUE)

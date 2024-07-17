@@ -1,9 +1,10 @@
 body, body[color="light"] {
-    --background-color:;
-    --tab-color:;
-    --tab-color-inactive:;
-    --tab-ctr-color:;
-    --font-color:;
+    --background-color:#e0e0e0;
+    --tab-color:#e0e0e0;
+    --tab-color-inactive:#878787;
+    --tab-ctr-color:#545454;
+    --font-color:#262626;
+    --active-color:173, 88, 252;
 }
 
 body[color="dark"] {
@@ -12,6 +13,7 @@ body[color="dark"] {
     --tab-color-inactive:#101b2e;
     --tab-ctr-color:#13161a;
     --font-color:#9e9e9e;
+    --active-color: 98, 122, 255;
 }
 
 body[color="red"] {
@@ -20,6 +22,7 @@ body[color="red"] {
     --tab-color-inactive:#4d2e2e;
     --tab-ctr-color:#1d0000;
     --font-color:#f7c1c1;
+    --active-color: 212, 34, 34;
 }
 
 body[color="blue"] {
@@ -28,6 +31,7 @@ body[color="blue"] {
     --tab-color-inactive:#edf0f7;
     --tab-ctr-color:#375bbf;
     --font-color:#050f2e;
+    --active-color: 98, 122, 255;
 }
 
 body[color="green"] {
@@ -36,6 +40,7 @@ body[color="green"] {
     --tab-color-inactive:#4f7949;
     --tab-ctr-color:#092e03;
     --font-color:#e0ffdb;
+    --active-color: 60, 226, 54;
 }
 
 body {
@@ -43,25 +48,38 @@ body {
     margin: 0;
     background-color: var(--background-color);
     color: var(--font-color);
-    font-family: sans-serif;
+    font-family: 'Nunito';
 }
 
-.file.required::after, .required + label::after {
+label:has(+ div>.required) > span::after, label:has(+ .required) > span::after {
     content: '*';
     color: red;
 }
 
-#tabHandles {
-    top: 0;
-    margin: 0;
-    display: flex;
-    align-items: start;
-    flex-wrap: wrap;
-    background-color: var(--tab-ctr-color);
-}
-
 .filechart {
     display: none
+}
+
+/* TABS */
+#tabHandles {
+    display: grid;
+    grid-auto-flow: column;
+    width: max-content;
+    overflow: hidden;
+}
+
+#handlesCtr {
+    margin: 0;
+    background-color: var(--tab-ctr-color);
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+}
+
+#handlesCtr > div {
+    display: flex;
+    align-items: end;
+    overflow: hidden;
 }
 
 .tab:not(.active) {
@@ -73,8 +91,11 @@ body {
 }
 
 .tab-handle {
+    position: relative;
+    width: max-content;
     margin-top: 1rem;
     border-radius: 0.5rem 0.5rem 0 0;
+    border: 1px solid var(--tab-ctr-color);
     border-bottom: 0;
     background-color: var(--tab-color-inactive);
     padding: 0.35rem 1rem;
@@ -84,9 +105,10 @@ body {
     gap: 0.5rem;
     justify-content: space-between;
     align-items: center;
+    user-select: none;
 }
 
-.tab-handle:first-child {
+.input-tab {
     padding-inline-end: 1rem;
 }
 
@@ -96,10 +118,6 @@ body {
     padding: 0.25rem;
     border-radius: 0.33rem;
     transition: background-color 0.1s ease;
-}
-
-.tab-handle:first-child {
-    visibility: none !important;
 }
 
 .tab-handle .close:hover {
@@ -116,4 +134,145 @@ body {
 
 .tab-handle.active .close {
     visibility: initial;
+}
+
+.moreTabs {
+    display: block;
+    user-select: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: var(--font-color);
+    height: fit-content;
+    padding: 0.25rem;
+    margin: 0.25rem;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.moreTabs:hover {
+    background-color: rgba(var(--active-color), 0.15);
+}
+
+#handlesCtr > div:last-child {
+    position: absolute;
+    right: 0;
+    background-color: var(--tab-ctr-color);
+}
+
+/* INPUT */
+.calcForm *:is(input, select, .checkbox_repl) {
+    margin: auto;
+    display: block;
+    margin-block: 0.25rem;
+}
+
+.file-ctr > div {
+    display: flex;
+    margin-block: 1rem;
+}
+
+.file-ctr label, .option label {
+    text-align: center;
+    margin: auto;
+    display: block;
+    margin-top: 0.25rem;
+    width: fit-content;
+}
+
+form.calcForm {
+    display: flex;
+    width: 60%;
+    flex-direction: column;
+    margin: auto;
+}
+
+.calcForm button[type="submit"] {
+    width: min-content;
+    display: block;
+    margin: auto;
+    margin-top: 1rem;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid rgb(var(--active-color));
+    color: rgb(var(--active-color));
+    padding: 0.5em 2em;
+    border-radius: 3em;
+    font-size: 1.1rem;
+    transition: padding 0.5s ease;
+}
+
+.calcForm button[type="submit"]:hover {
+    padding: 0.5em 2.5em;
+}
+
+/* Text/Number/Select */
+
+.calcForm input[type="text"], .calcForm input[type="number"], .calcForm select {
+    background: var(--background-color);
+    outline: 1px solid var(--font-color);
+    color: var(--font-color);
+    border-radius: 1rem;
+    padding: 0.25rem 0.75rem;
+    border: 0;
+}
+
+.calcForm input[type="text"]:focus-visible, .calcForm input[type="number"]:focus-visible, .calcForm select:focus-visible {
+    outline: rgb(var(--active-color)) solid 2px;
+}
+
+/* Checkbox */
+
+.calcForm input[type="checkbox"] {
+    display: none;
+}
+
+.calcForm .checkbox_repl {
+    aspect-ratio: 1/1;
+    width: 1rem;
+    outline: 1px solid var(--font-color);
+    border-radius:  0.25em;
+    position: relative;
+}
+
+.calcForm .checkbox_repl:focus {
+    outline: rgb(var(--active-color)) solid 2px;
+}
+
+.checkbox_repl::after {
+    position: absolute;
+    inset: 0.25rem;
+    background-color: rgb(var(--active-color));
+    border-radius: 50%;
+}
+
+.calcForm input[type="checkbox"]:checked + .checkbox_repl::after {
+    content: '';
+}
+
+.option label:has(input) {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Number */
+
+.calcForm input[type="number"] {
+    position: relative;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.calcForm input[type="number"]::-webkit-outer-spin-button,
+.calcForm input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+/* Select */
+.calcForm select{
+    position: relative;
+    border-right: 0.5rem solid transparent;
 }

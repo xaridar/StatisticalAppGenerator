@@ -19,15 +19,6 @@ def home():
 
 @app.post('/')
 def upload():
-    # if 'file' not in request.files:
-    #     print('No file')
-    #     return jsonify(success=False)
-    # file = request.files['file']
-    # if file.filename == '' or file.content_type != 'text/csv':
-    #     print('No file')
-    #     return jsonify(success=False)
-    # csv_data = pd.read_csv(file.stream)
-    # return jsonify(success=True, data=csv_data.to_string(), argnames=str(request.form.keys()))
     id = time.time() * 1000
     filepaths = []
     args = []

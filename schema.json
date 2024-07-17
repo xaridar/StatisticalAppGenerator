@@ -17,7 +17,12 @@
                             "default": false
                         },
                         "pattern": {
-                            "type": "string",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "regex": {"type": "string"},
+                                "hint": {"type": "string"}
+                            },
                             "default": null
                         },
                         "minlength": {

@@ -1,25 +1,53 @@
 let tab = 0;
-let tabs = 1;
+let tabs = $('.tab-handle').length;
 let maxTab = 0;
+let firstTab = 0;
 
 const changeTab = (tabNum) => {
     if (tabNum >= tabs) return;
-    $(`[data-tab="${tab}"]`).removeClass('active');
-    $(`[data-tab="${tabNum}"]`).addClass('active');
+    try {
+        const handle = $(`.tab-handle.active`);
+        handle.removeClass('active');
+        $(`.tab[data-tab="${handle[0].dataset.tab}"]`).removeClass('active');
+    } catch {}
+    const newHandle = $(`.tab-handle:nth-child(${tabNum + 1})`);
+    newHandle.addClass('active');
+    try {
+        $(`.tab[data-tab="${newHandle[0].dataset.tab}"]`).addClass('active');
+    } catch {}
     tab = tabNum;
+
+    /* scroll to tab */
+    const diff = (newHandle.offset().left + newHandle.outerWidth()) - ($('#tabHandles').offset().left + $('#tabHandles').outerWidth());
+    if (diff < 0) return;
+    let sum = 0;
+    let i = 0;
+    while (sum < diff && firstTab < tabs - 1) {
+        firstTab++;
+        sum += $(`.tab-handle:nth-child(${i + 1})`).outerWidth();
+        i++;
+    }
 }
 
 const closeTab = (tabNum) => {
-    if (tabNum === 0) return;
-    $(`[data-tab="${tabNum}"]`).remove();
-    $('[data-tab]').each((i, el) => {
-        if (el.dataset.tab > tabNum) el.dataset.tab--;
-    });
+    handle = $(`.tab-handle[data-tab]:nth-child(${tabNum + 1})`)
+    if (handle.hasClass('input-tab')) return;
+    $(`.tab[data-tab="${handle[0].dataset.tab}"]`).remove();
+    handle.remove();
     tabs--;
     if (tabNum === tab) {
-        if (tab < tabs) changeTab(tab);
-        else changeTab(tab - 1);
+        if (tab === 0) changeTab(0);
+        else if (tab < tabs) changeTab(tab);
+        else changeTab(tabs - 1);
     }
+}
+
+const drawTabs = () => {
+    let totalWidth = 0;
+    for (let i = 0; i < firstTab; i++) {
+        totalWidth += $(`.tab-handle:nth-child(${i + 1})`).outerWidth();
+    }
+    $('.tab-handle').css('left', `-${totalWidth}px`);
 }
 
 $(() => {
@@ -120,9 +148,10 @@ $(() => {
             $('#tabs').append(newTab[0]);
             
             const handle = $((document).createElement('span'));
-            handle.attr('data-tab', tabs);
             handle.addClass('tab-handle');
             handle.text(`Output ${maxTab}`);
+            handle.attr('draggable', 'true');
+            handle.attr('data-tab', tabs);
             const close = $((document).createElement('i'));
             close.addClass('material-icons close');
             close.text('close');
@@ -135,12 +164,68 @@ $(() => {
         $(this).find('input, button, select').prop('disabled', false);
     });
 
-    $(document).on('click', '.tab-handle', function() {
-        changeTab(+this.dataset.tab);
+    $(document).on('click', '.tab-handle', function(e) {
+        console.log($(e.target).index())
+        changeTab($(e.target).index());
     });
 
     $(document).on('click', '.tab-handle .close', function(e) {
-        closeTab(+this.parentElement.dataset.tab);
+        closeTab($(e.target).parent().index());
         e.stopPropagation();
+    });
+
+    /* Tab dragging */
+ 
+    $('#handlesCtr').on("dragstart", function(e) {
+        $(e.target).addClass('dragging');
+    });
+     
+    $('#tabHandles').on("dragend", function(e) {
+        $(e.target).removeClass('dragging');
+    });
+
+    $('#tabHandles').on("dragover", function(e) {
+        e.preventDefault();
+        el = $('#tabHandles .dragging').detach()[0]
+        const afterElement = getDragAfterElement($('#tabHandles'), e.clientX);
+        if (!afterElement) {
+            $('#tabHandles').append(el);
+        } else {
+            console.log(afterElement);
+            $('#tabHandles')[0].insertBefore(el, afterElement);
+        }
+    });
+     
+    const getDragAfterElement = (ctr, x) => {
+        const draggableElements = [...ctr.children()];
+     
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = x - box.left - 2 * box.width / 3;
+            if (offset < 0 && offset > closest.offset) {
+                return {
+                    offset: offset,
+                    element: child,
+                };
+            } else {
+                return closest;
+            }
+        }, {
+            offset: Number.NEGATIVE_INFINITY,
+        }).element;
+    };
+    
+    /* Tab overflow */
+
+    $('#tabsLeft').on('click', () => {
+        if (firstTab > 0) firstTab--;
+        drawTabs();
+    });
+    
+    $('#tabsRight').on('click', () => {
+        const inner = $('.tab-handle:last-child').offset().left + $('.tab-handle:last-child').outerWidth();
+        const outer = $('#tabHandles').offset().left + $('#tabHandles').outerWidth();
+        if (inner > outer + 0.05 && firstTab < tabs - 1) firstTab++;
+        drawTabs();
     });
 });

@@ -92,7 +92,7 @@ def createInput(html, options):
                 if options['maxlength'] is not None:
                     input['maxlength'] = options['maxlength']
                 if options['pattern'] is not None:
-                    input['pattern'] = options['pattern']
+                    input['pattern'] = options['pattern']['regex']
             if options['type'] == 'number':
                 if options['min'] is not None:
                     input['min'] = options['min']
@@ -130,46 +130,73 @@ def createInput(html, options):
 
     div = html.new_tag('div')
     div['class'] = 'option'
-    div.append(input)
-    if 'description' in options and options['description'] != '':
+    if 'description' in options:
         label = html.new_tag('label')
         label['for'] = f'{options['name']}_inp'
-        label.string = options['description']
+        span = html.new_tag('span')
+        span.string = options['description']
+        label.append(span)
         div.append(label)
+    if 'pattern' in input:
+        small = html.new_tag('small')
+        small.string = f'Pattern: {option["hint"]}'
+        label.append(html.new_tag('br'))
+        label.append(small)
     if options['type'] == 'checkbox':
         hidden = html.new_tag('input')
         hidden['type'] = 'hidden'
         hidden['name'] = options['name']
         hidden['value'] = 'false'
         input['value'] = 'true'
+        input['onfocus'] = "$(e.target).siblings('.checkbox_repl').focus()"
+        label.append(input)
         div.append(hidden)
+        repl = html.new_tag('span')
+        repl['class'] = 'checkbox_repl'
+        label.append(repl)
+    else:
+        div.append(input)
     return div
 
 def createFileInput(html, options, graph):
+    label = html.new_tag('label')
+    label['id'] = f'{options["name"]}_inp'
+    span = html.new_tag('span')
+    span.string = options['name']
+    label.append(span)
+    small = html.new_tag('small')
+    small.string = f'Requires \'{options["x_param"]}\', \'{options["y_param"]}\''
+    label.append(html.new_tag('br'))
+    label.append(small)
+    input_ctr = html.new_tag('div')
     input = html.new_tag('input')
     input['type'] = 'file'
-    input['id'] = f'{options['name']}_inp'
+    input['id'] = f'{options["name"]}_inp'
     input['class'] = 'file'
-    input['name'] = options['name']
+    input['name'] = options["name"]
     if not options['optional']:
         input['class'] += ' required'
     input['data-x-label'] = options['x_param']
     input['data-y-label'] = options['y_param']
+    input_ctr.append(input)
     ctr = html.new_tag('div')
     ctr['class'] = 'file-ctr'
-    ctr.append(input)
+    ctr.append(label)
     if graph:
         canvas = html.new_tag('canvas')
         canvas['class'] = 'filechart'
-        ctr.append(canvas)
+        input_ctr.append(canvas)
+    ctr.append(input_ctr)
     return ctr
 
 if __name__ == '__main__':
     parser = ap.ArgumentParser(prog='Statistical App Generator', description='Generates a stats web app from a template')
     parser.add_argument('math_filepath', help="Path to a .py or .r file, containing a function (named 'calc' unless otherwise specified in config), which does math given an argument object and outputs an object")
     parser.add_argument('-c', '--config', help="Path to a .JSON file (format in schema.json) for app configuration")
+    parser.add_argument('-o', '--out', help="Relative or absolute path where an 'app' directory should be generated containing the application", required=True)
 
     args = parser.parse_args()
+    outp_path = os.path.join(args.out, 'app')
 
     with open('./schema.json') as jsonschema:
         config_schema = json.load(jsonschema)
@@ -183,8 +210,6 @@ if __name__ == '__main__':
                 sys.exit(0)
     else:
         cf = fillDefaults({}, config_schema)
-
-    print(json.dumps(cf, indent=4))
     
     # copies 'template' directory (in executable) to new 'app' directory
     if os.path.exists(outp_path):
@@ -238,3 +263,5 @@ if __name__ == '__main__':
         file.write(html.prettify(formatter=formatter))
     with open(os.path.join(outp_path, 'templates/base.html'), 'w') as file:
         file.write(base_html.prettify(formatter=formatter))
+
+    print(f'App generated at {os.path.abspath(outp_path)}')
