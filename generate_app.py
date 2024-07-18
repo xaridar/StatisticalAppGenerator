@@ -160,7 +160,7 @@ def createInput(html, options):
 
 def createFileInput(html, options, graph):
     label = html.new_tag('label')
-    label['id'] = f'{options["name"]}_inp'
+    label['for'] = f'{options["name"]}_inp'
     span = html.new_tag('span')
     span.string = options['name']
     label.append(span)
@@ -169,6 +169,18 @@ def createFileInput(html, options, graph):
     label.append(html.new_tag('br'))
     label.append(small)
     input_ctr = html.new_tag('div')
+
+    inner_label = html.new_tag('label')
+    inner_label['for'] = f'{options["name"]}_inp'
+    file_upload = html.new_tag('span')
+    file_upload['class'] = 'file-upload'
+    file_upload.string = 'Upload .csv file'
+    p = html.new_tag('p')
+    p['class'] = 'filename'
+    inner_label.append(file_upload)
+    inner_label.append(p)
+    input_ctr.append(inner_label)
+
     input = html.new_tag('input')
     input['type'] = 'file'
     input['id'] = f'{options["name"]}_inp'
@@ -182,6 +194,7 @@ def createFileInput(html, options, graph):
     ctr = html.new_tag('div')
     ctr['class'] = 'file-ctr'
     ctr.append(label)
+
     if graph:
         canvas = html.new_tag('canvas')
         canvas['class'] = 'filechart'

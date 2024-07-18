@@ -5,6 +5,7 @@ let firstTab = 0;
 
 const changeTab = (tabNum) => {
     if (tabNum >= tabs) return;
+    window.scrollTo(0, 0);
     try {
         const handle = $(`.tab-handle.active`);
         handle.removeClass('active');
@@ -19,7 +20,8 @@ const changeTab = (tabNum) => {
 
     /* scroll to tab */
     const diff = (newHandle.offset().left + newHandle.outerWidth()) - ($('#tabHandles').offset().left + $('#tabHandles').outerWidth());
-    if (diff < 0) return;
+    if (diff <= 10) return;
+    console.log(diff);
     let sum = 0;
     let i = 0;
     while (sum < diff && firstTab < tabs - 1) {
@@ -27,6 +29,7 @@ const changeTab = (tabNum) => {
         sum += $(`.tab-handle:nth-child(${i + 1})`).outerWidth();
         i++;
     }
+    drawTabs();
 }
 
 const closeTab = (tabNum) => {
@@ -34,6 +37,10 @@ const closeTab = (tabNum) => {
     if (handle.hasClass('input-tab')) return;
     $(`.tab[data-tab="${handle[0].dataset.tab}"]`).remove();
     handle.remove();
+    if (firstTab > 0) {
+        firstTab--;
+        drawTabs();
+    }
     tabs--;
     if (tabNum === tab) {
         if (tab === 0) changeTab(0);
@@ -73,6 +80,7 @@ $(() => {
                 $(this).val('');
                 return;
             }
+            $(`label[for="${$(this).prop('id')}"] p.filename`).text(file.name);
             // replace canvas
             if (!$(this).siblings('.filechart').length) return;
 
@@ -195,6 +203,33 @@ $(() => {
             $('#tabHandles')[0].insertBefore(el, afterElement);
         }
     });
+
+    let canShift = true;
+
+    $('#tabsLeft').on("dragover", function (e) {
+        e.preventDefault();
+        if (!canShift) return;
+        canShift = false;
+        if (firstTab > 0) firstTab--;
+        drawTabs();
+        setTimeout(() => {
+            canShift = true;
+        }, 600);
+    });
+    $('#tabsRight').on("dragover", function (e) {
+        e.preventDefault();
+        if (!canShift) return;
+        canShift = false;
+        if (firstTab < tabs - 1) firstTab++;
+        drawTabs();
+        setTimeout(() => {
+            canShift = true;
+        }, 600);
+    });
+    $('.moreTabs').on("dragleave", function (e) {
+        e.preventDefault();
+        canShift = true;
+    });
      
     const getDragAfterElement = (ctr, x) => {
         const draggableElements = [...ctr.children()];
@@ -223,9 +258,7 @@ $(() => {
     });
     
     $('#tabsRight').on('click', () => {
-        const inner = $('.tab-handle:last-child').offset().left + $('.tab-handle:last-child').outerWidth();
-        const outer = $('#tabHandles').offset().left + $('#tabHandles').outerWidth();
-        if (inner > outer + 0.05 && firstTab < tabs - 1) firstTab++;
+        if (firstTab < tabs - 1) firstTab++;
         drawTabs();
     });
 });

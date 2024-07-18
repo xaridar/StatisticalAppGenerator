@@ -51,7 +51,7 @@ body {
     font-family: 'Nunito';
 }
 
-label:has(+ div>.required) > span::after, label:has(+ .required) > span::after {
+label:has(+ div>.required) > span:not(.file-upload)::after, label:has(+ .required) > span:not(.file-upload)::after {
     content: '*';
     color: red;
 }
@@ -206,9 +206,9 @@ form.calcForm {
     padding: 0.5em 2.5em;
 }
 
-/* Text/Number/Select */
+/* Common input styles */
 
-.calcForm input[type="text"], .calcForm input[type="number"], .calcForm select {
+.calcForm input[type="text"], .calcForm input[type="number"], .calcForm select, .calcForm .file-upload {
     background: var(--background-color);
     outline: 1px solid var(--font-color);
     color: var(--font-color);
@@ -217,7 +217,7 @@ form.calcForm {
     border: 0;
 }
 
-.calcForm input[type="text"]:focus-visible, .calcForm input[type="number"]:focus-visible, .calcForm select:focus-visible {
+.calcForm input[type="text"]:focus-visible, .calcForm input[type="number"]:focus-visible, .calcForm select:focus-visible, .calcForm .file-upload:focus-visible {
     outline: rgb(var(--active-color)) solid 2px;
 }
 
@@ -275,4 +275,17 @@ form.calcForm {
 .calcForm select{
     position: relative;
     border-right: 0.5rem solid transparent;
+}
+
+/* Files */
+.calcForm input[type="file"] {
+    display: none;
+}
+
+.calcForm .file-upload {
+    cursor: pointer;
+}
+
+.calcForm .file-upload + .filename {
+    font-size: 0.9em;
 }
