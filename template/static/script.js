@@ -58,6 +58,11 @@ const drawTabs = () => {
 }
 
 $(() => {
+
+    Chart.defaults.font.size = '14';
+    Chart.defaults.font.family = 'monospace';
+    let chart;
+
     $(document).on('change', '.file', function() {
 
         // check file
@@ -65,6 +70,8 @@ $(() => {
         if (file == undefined || file.name == '' || file.type != 'text/csv') {
             // bad file
             $(this).val('');
+            if (chart) chart.destroy();
+            $(`label[for="${$(this).prop('id')}"] p.filename`).text('');
             return;
         }
 
@@ -78,6 +85,8 @@ $(() => {
             if (labels[0] === undefined || values[0] === undefined) {
                 // bad file
                 $(this).val('');
+                if (chart) chart.destroy();
+                $(`label[for="${$(this).prop('id')}"] p.filename`).text('');
                 return;
             }
             $(`label[for="${$(this).prop('id')}"] p.filename`).text(file.name);
@@ -89,15 +98,20 @@ $(() => {
             $(canvas).addClass('filechart');
             $(this).parent().append(canvas);
             
-            // show chart    
+            // show chart
             const ctx = canvas.getContext('2d');
-            const chart = new Chart(ctx, {
+            const fontColor = getComputedStyle(document.body).getPropertyValue('--font-color');
+            const gridColor = getComputedStyle(document.body).getPropertyValue('--grid-color');
+            const activeColor = `rgb(${getComputedStyle(document.body).getPropertyValue('--active-color')})`;
+            chart = new Chart(ctx, {
                 type: 'scatter',
                 data: {
                     labels,
                     datasets: [
                         {
                             data: values,
+                            borderColor: activeColor,
+                            backgroundColor: activeColor
                         }
                     ]
                 },
@@ -105,6 +119,9 @@ $(() => {
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            enabled: false
                         }
                     },
                     scales: {
@@ -112,12 +129,26 @@ $(() => {
                             title: {
                                 text: this.dataset.xLabel,
                                 display: true,
+                                color: fontColor
+                            },
+                            ticks: {
+                                color: fontColor
+                            },
+                            grid: {
+                                color: gridColor
                             }
                         },
                         y: {
                             title: {
                                 text: this.dataset.yLabel,
                                 display: true,
+                                color: fontColor
+                            },
+                            ticks: {
+                                color: fontColor
+                            },
+                            grid: {
+                                color: gridColor
                             }
                         }
                     },

@@ -5,6 +5,7 @@ body, body[color="light"] {
     --tab-ctr-color:#545454;
     --font-color:#262626;
     --active-color:173, 88, 252;
+    --grid-color: #d3ccdf;
 }
 
 body[color="dark"] {
@@ -14,6 +15,7 @@ body[color="dark"] {
     --tab-ctr-color:#13161a;
     --font-color:#9e9e9e;
     --active-color: 98, 122, 255;
+    --grid-color: #424251;
 }
 
 body[color="red"] {
@@ -23,6 +25,7 @@ body[color="red"] {
     --tab-ctr-color:#1d0000;
     --font-color:#f7c1c1;
     --active-color: 212, 34, 34;
+    --grid-color: #844e4e;
 }
 
 body[color="blue"] {
@@ -32,6 +35,7 @@ body[color="blue"] {
     --tab-ctr-color:#375bbf;
     --font-color:#050f2e;
     --active-color: 98, 122, 255;
+    --grid-color: #9fb2e1;
 }
 
 body[color="green"] {
@@ -41,6 +45,7 @@ body[color="green"] {
     --tab-ctr-color:#092e03;
     --font-color:#e0ffdb;
     --active-color: 60, 226, 54;
+    --grid-color: #586f59;
 }
 
 body {
@@ -170,6 +175,9 @@ label:has(+ div>.required) > span:not(.file-upload)::after, label:has(+ .require
 .file-ctr > div {
     display: flex;
     margin-block: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
 
 .file-ctr label, .option label {
@@ -288,4 +296,8 @@ form.calcForm {
 
 .calcForm .file-upload + .filename {
     font-size: 0.9em;
+}
+
+.file-ctr div>label {
+    margin-block: 0;
 }
