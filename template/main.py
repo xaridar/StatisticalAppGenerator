@@ -2,8 +2,10 @@ import time
 from flask import Flask, render_template, redirect, request, jsonify
 import pandas as pd
 from dotenv import load_dotenv
+import json
 import os
 import subprocess
+from decimal import Decimal
 
 load_dotenv('.env')
 
@@ -16,6 +18,19 @@ def alias():
 @app.get('/')
 def home():
     return render_template('index.html')
+
+def convert_numbers(obj, precision):
+    if type(obj) is int or type(obj) is float:
+        return str(obj) if precision == 'any' else '{num:.{prec}f}'.format(num=Decimal(str(obj)), prec=precision)
+    if type(obj) is list:
+        for i, item in enumerate(obj):
+            obj[i] = convert_numbers(item, precision)
+    if type(obj) is dict:
+        for k, v in obj.items():
+            print(k)
+            print(v)
+            obj[k] = convert_numbers(v, precision)
+    return obj
 
 @app.post('/')
 def upload():
@@ -45,14 +60,20 @@ def upload():
         else:
             args.append(f'-{option}')
             args.append(request.form.get(option))
+    if len(filepaths) == 0:
+        id = 'noid'
     
-    command = f'{os.getenv('LANGUAGE')} wrapper.{os.getenv('EXTENSION')} calculation.{os.getenv('EXTENSION')} {os.getenv('METHOD')} {id}'
+    command = f'{os.getenv('LANGUAGE')} wrapper.{os.getenv('EXTENSION')} calculation.{os.getenv('EXTENSION')} {os.getenv('METHOD')} {os.getenv('OUTPUT_STRING')} {id}'
     args = command.split(' ') + args
     res = subprocess.check_output(args)
+    
     for file in filepaths:
         os.remove(file)
+
+    json_out = eval(res)
+    json_out = convert_numbers(json_out, int(os.getenv('PRECISION')))
         
-    return jsonify(success=True, data=res.decode('UTF-8'))
+    return jsonify(success=True, data=json_out)
 
 if __name__ == '__main__':
     app.run()

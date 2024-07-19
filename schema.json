@@ -147,8 +147,46 @@
                         "function_name": {
                             "type": "string",
                             "default": "calc"
+                        },
+                        "precision": {
+                            "oneOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "const": "any"
+                                }
+                            ],
+                            "default": "any"
+                        },
+                        "format": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "anyOf": [
+                                    {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "name": {"type": "string"},
+                                            "type": {"const": "graph"},
+                                            "x_axis": {"type": "string"},
+                                            "y_axis": {"type": "string"}
+                                        },
+                                        "required": ["name", "type", "x_axis", "y_axis"]
+                                    },
+                                    {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "name": {"type": "string"},
+                                            "type": {"const": "table"}
+                                        },
+                                        "required": ["name", "type"]
+                                    }
+                                ]
+                            }
                         }
-                    }
+                    },
+                    "required": ["format"]
                 },
                 "input_file": {
                     "type": "object",
@@ -188,7 +226,8 @@
                         }
                     }
                 }
-            }
+            },
+            "required": ["output"]
         }
     }
 }

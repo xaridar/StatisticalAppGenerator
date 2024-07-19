@@ -6,6 +6,7 @@ from jsonschema import validate, ValidationError
 from bs4 import BeautifulSoup
 from bs4.formatter import HTMLFormatter
 from shutil import copytree, rmtree, copyfile
+from alive_progress import alive_bar
 
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
 outp_path = './app'
@@ -94,13 +95,13 @@ def createInput(html, options):
                 if options['pattern'] is not None:
                     input['pattern'] = options['pattern']['regex']
             if options['type'] == 'number':
+                input['step'] = 'any'
                 if options['min'] is not None:
                     input['min'] = options['min']
                 if options['max'] is not None:
                     input['max'] = options['max']
                 if options['integer']:
-                    input['type'] = 'text'
-                    input['pattern'] = '\\d*'
+                    input['step'] = '1'
         case 'select':
             input = html.new_tag('select')
             input['id'] = f'{options['name']}_inp'
@@ -211,70 +212,92 @@ if __name__ == '__main__':
     args = parser.parse_args()
     outp_path = os.path.join(args.out, 'app')
 
-    with open('./schema.json') as jsonschema:
-        config_schema = json.load(jsonschema)
+    with alive_bar(10, bar='brackets', spinner='classic', calibrate=40) as bar:
+        bar.text('Reading config schema...')
+        with open('./schema.json') as jsonschema:
+            config_schema = json.load(jsonschema)
+        bar()
 
-    if not check_paths():
-        sys.exit(1)
-    if args.config is not None:
-        with open(args.config) as cf:
-            cf = parseConfigToObj(cf, config_schema)
-            if cf is None:
-                sys.exit(0)
-    else:
-        cf = fillDefaults({}, config_schema)
-    
-    # copies 'template' directory (in executable) to new 'app' directory
-    if os.path.exists(outp_path):
-        rmtree(outp_path)
-    copytree(inp_path, outp_path)
+        bar.text('Parsing config...')
+        if not check_paths():
+            
+            sys.exit(1)
+        if args.config is not None:
+            with open(args.config) as cf:
+                cf = parseConfigToObj(cf, config_schema)
+                if cf is None:
+                    sys.exit(0)
+        else:
+            cf = fillDefaults({}, config_schema)
+        bar()
+        
+        bar.text('Copying template app...')
+        # copies 'template' directory (in executable) to new 'app' directory
+        if os.path.exists(outp_path):
+            rmtree(outp_path)
+            bar()
+        copytree(inp_path, outp_path)
+        bar()
 
-    # copies math file into app
-    copyfile(args.math_filepath, os.path.join(outp_path, f'calculation.{args.math_filepath.split('.')[-1]}'))
+        bar.text(f'Copying {args.math_filepath} to app...')
+        # copies math file into app
+        copyfile(args.math_filepath, os.path.join(outp_path, f'calculation.{args.math_filepath.split('.')[-1]}'))
+        bar()
 
-    # creates generated .env file
-    env_vars = {
-        'METHOD': cf['settings']['output']['function_name'],
-        'LANGUAGE': 'python' if args.math_filepath.split('.')[-1] == 'py' else 'Rscript',
-        'EXTENSION': args.math_filepath.split('.')[-1]
-    }
+        # creates generated .env file
+        env_vars = {
+            'METHOD': cf['settings']['output']['function_name'],
+            'LANGUAGE': 'python' if args.math_filepath.split('.')[-1] == 'py' else 'Rscript',
+            'EXTENSION': args.math_filepath.split('.')[-1],
+            'PRECISION': cf['settings']['output']['precision']
+        }
 
-    if cf['settings']['input_file']['enabled']:
-        for option in cf['settings']['input_file']['files']:
-            env_vars[f'XVAR_{option['name']}'] = option['x_param']
-            env_vars[f'YVAR_{option['name']}'] = option['y_param']
+        bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
 
-    with open(os.path.join(outp_path, '.env'), 'w') as file:
-        file.write('\n'.join([f'{kv[0]}="{kv[1]}"' for kv in env_vars.items()]))
+        env_vars['OUTPUT_STRING'] = ','.join([f'{option["name"]}:table' if option['type'] == 'table' else f'{option["name"]}:graph({option["x_axis"]}/{option["y_axis"]})' for option in cf['settings']['output']['format']])
+        bar()
+                
+        if cf['settings']['input_file']['enabled']:
+            for option in cf['settings']['input_file']['files']:
+                env_vars[f'XVAR_{option['name']}'] = option['x_param']
+                env_vars[f'YVAR_{option['name']}'] = option['y_param']
+        bar()
 
-    # reads existing HTML template
-    with open(os.path.join(inp_path, 'templates/index.html')) as file:
-        html = BeautifulSoup(file.read(), 'html.parser')
-    with open(os.path.join(inp_path, 'templates/base.html')) as file:
-        base_html = BeautifulSoup(file.read(), 'html.parser')
-    
-    # adds necessary options to templates/index.html
-    form = html.find('form', class_="calcForm")
+        with open(os.path.join(outp_path, '.env'), 'w') as file:
+            file.write('\n'.join([f'{kv[0]}="{kv[1]}"' for kv in env_vars.items()]))
+        bar()
 
-    for i, option in enumerate(cf['options']):
-        div = createInput(html, option)
-        form.insert(i, div)
+        bar.text('Generating HTML...')
+        # reads existing HTML template
+        with open(os.path.join(inp_path, 'templates/index.html')) as file:
+            html = BeautifulSoup(file.read(), 'html.parser')
+        with open(os.path.join(inp_path, 'templates/base.html')) as file:
+            base_html = BeautifulSoup(file.read(), 'html.parser')
+        bar()
+        
+        # adds necessary options to templates/index.html
+        form = html.find('form', class_="calcForm")
 
-    if cf['settings']['input_file']['enabled']:
-        graph = cf['settings']['input_file']['graph_input']
-        for i, option in enumerate(cf['settings']['input_file']['files']):
-            div = createFileInput(html, option, graph)
+        for i, option in enumerate(cf['options']):
+            div = createInput(html, option)
             form.insert(i, div)
 
-    # set color theme
-    body = base_html.find('body')
-    body['color'] = cf['settings']['themeColor']
-        
-    # writes output
-    formatter = HTMLFormatter(indent=4)
-    with open(os.path.join(outp_path, 'templates/index.html'), 'w') as file:
-        file.write(html.prettify(formatter=formatter))
-    with open(os.path.join(outp_path, 'templates/base.html'), 'w') as file:
-        file.write(base_html.prettify(formatter=formatter))
+        if cf['settings']['input_file']['enabled']:
+            graph = cf['settings']['input_file']['graph_input']
+            for i, option in enumerate(cf['settings']['input_file']['files']):
+                div = createFileInput(html, option, graph)
+                form.insert(i, div)
+
+        # set color theme
+        body = base_html.find('body')
+        body['color'] = cf['settings']['themeColor']
+            
+        # writes output
+        formatter = HTMLFormatter(indent=4)
+        with open(os.path.join(outp_path, 'templates/index.html'), 'w') as file:
+            file.write(html.prettify(formatter=formatter))
+        with open(os.path.join(outp_path, 'templates/base.html'), 'w') as file:
+            file.write(base_html.prettify(formatter=formatter))
+        bar()
 
     print(f'App generated at {os.path.abspath(outp_path)}')

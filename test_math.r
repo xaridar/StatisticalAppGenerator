@@ -1,3 +1,0 @@
-calc <- function(object) {
-  object
-}

@@ -1,49 +1,50 @@
 {
     "options": [
         {
-            "name": "test_select",
-            "description": "select",
-            "type": "select",
-            "options": [
-                {"text": "Normal", "value": "normal"},
-                {"text": "Gamma", "value": "gamma"},
-                {"text": "Poisson", "value": "poisson"},
-                {"text": "Bernoulli", "value": "bernoulli"}
-            ]
+            "name": "cv",
+            "description": "Coefficient of Variation (CV)",
+            "type": "number"
         },
         {
-            "name": "test_check",
-            "type": "checkbox",
-            "description": "check"
-        },
-        {
-            "name": "test_text",
-            "type": "text",
-            "description": "text"
-        },
-        {
-            "name": "test_number",
+            "name": "beta",
+            "description": "Type II Error Rate (beta)",
             "type": "number",
-            "description": "number"
+            "min": 0,
+            "max": 0.5
+        },
+        {
+            "name": "k",
+            "description": "Number of Independent Experiments (k)",
+            "type": "number",
+            "min": 0,
+            "max": 1
+        },
+        {
+            "name": "threshold",
+            "description": "Maximum acceptable LOD value",
+            "type": "number",
+            "integer": true,
+            "min": 0
         }
     ],
     "settings": {
         "input_file": {
-            "files": [
+            "enabled": false
+        },
+        "themeColor": "blue",
+        "output": {
+            "format": [
                 {
-                    "name": "file1",
-                    "optional": true,
-                    "x_param": "x",
-                    "y_param": "y"
+                    "name": "Graph",
+                    "type": "graph",
+                    "x_axis": "n",
+                    "y_axis": "LOD"
                 },
                 {
-                    "name": "file2",
-                    "optional": false,
-                    "x_param": "group",
-                    "y_param": "y"
+                    "name": "Table",
+                    "type": "table"
                 }
             ]
-        },
-        "themeColor": "dark"
+        }
     }
 }

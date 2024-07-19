@@ -223,6 +223,7 @@ form.calcForm {
     border-radius: 1rem;
     padding: 0.25rem 0.75rem;
     border: 0;
+    text-align: center;
 }
 
 .calcForm input[type="text"]:focus-visible, .calcForm input[type="number"]:focus-visible, .calcForm select:focus-visible, .calcForm .file-upload:focus-visible {
