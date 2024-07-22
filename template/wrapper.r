@@ -63,8 +63,13 @@ convert_list <- function(val) {
     val_str <- paste0("{", val_str, "}")
   } else if (is.character(val)) {
     for (v in val) {
-      if (i == 0) val_str <- paste0("'", v, "'")
-      else val_str <- sprintf("%s, '%s'", val_str, v)
+      if (startsWith(v, "[")) {
+        if (i == 0) val_str <- paste0("", v, "")
+        else val_str <- sprintf("%s, %s", val_str, v)
+      } else {
+        if (i == 0) val_str <- paste0("'", v, "'")
+        else val_str <- sprintf("%s, '%s'", val_str, v)
+      }
       i <- i + 1
     }
   if (length(val) > 1) val_str <- paste0("[", val_str, "]")
@@ -117,8 +122,9 @@ for (name in names(out_obj)) {
   key <- name
   value <- out_obj[[name]]
   inner_list <- list()
-  inner_list$type <- strsplit(output_format[key][[1]], "\\(")[[1]][1]
-  if (inner_list$type == "graph") {
+  arg_type <- strsplit(output_format[key][[1]], "\\(")[[1]][1]
+  inner_list$type <- arg_type
+  if (arg_type == "graph") {
     x_var <- strsplit(
       substring(
                 output_format[key],
@@ -135,8 +141,72 @@ for (name in names(out_obj)) {
     )[[1]][2]
     inner_list$labels <- value[x_var][[1]]
     inner_list$values <- value[y_var][[1]]
-  } else if (output_format[key] == "table") {
-    inner_list$table <- value
+  } else if (arg_type == "table") {
+    d <- list(columns = c("Param", "Value"))
+    data <- vector()
+    # TODO: WHY'S IT GOIN TO NO PREC AAAA
+    precision <- suppressWarnings(as.integer(
+      substring(
+                output_format[key],
+                7,
+                nchar(output_format[key]) - 1)
+    ))
+    if (!is.na(precision)) {
+      for (ele in names(value)) {
+        if (is.character(ele)) {
+          first_elem <- ele
+        } else {
+          first_elem <- formatC(ele, format = "f", digits = precision)
+        }
+        if (is.character(value[ele][[1]])) {
+          second_elem <- value[ele][[1]]
+        } else {
+          second_elem <- formatC(value[ele][[1]], format = "f", digits = 3)
+        }
+        data <- c(data, convert_list(c(first_elem, second_elem)))
+      }
+    } else {
+      for (ele in names(value)) {
+        print(length(data) + 1)
+        data <- c(data, convert_list(c(ele, value[ele][[1]])))
+      }
+    }
+    d$data <- data
+    inner_list$table <- d
+  } else if (arg_type == "text") {
+    inner_list$test <- as.character(value)
+  } else if (arg_type == "data_table") {
+    inner_list$type <- "table"
+    rows <- split(value, seq_len(nrow(value)))
+    table <- list(data = vector())
+    precision <- suppressWarnings(as.integer(
+      substring(
+                output_format[key],
+                7,
+                nchar(output_format[key]) - 1)
+    ))
+    if (!is.na(precision)) {
+      for (row in rows) {
+        new_row <- vector()
+        for (ele in row) {
+          if (is.character(ele)) {
+            new_row <- c(new_row, ele)
+          } else {
+            new_row <- c(new_row, formatC(ele, format = "f", digits = precision))
+          }
+        }
+        table$data <- c(table$data, convert_list(new_row))
+      }
+    } else {
+      for (row in rows) {
+        new_row <- vector()
+        for (ele in row) {
+          new_row <- c(new_row, as.character(ele))
+        }
+        table$data <- c(table$data, convert_list(new_row))
+      }
+    }
+    inner_list$table <- table
   }
   i <- length(output) + 1
   output[[i]] <- inner_list
@@ -144,4 +214,3 @@ for (name in names(out_obj)) {
 }
 
 cat(convert_list(output))
-# print(output)

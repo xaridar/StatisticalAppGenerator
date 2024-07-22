@@ -19,19 +19,6 @@ def alias():
 def home():
     return render_template('index.html')
 
-def convert_numbers(obj, precision):
-    if type(obj) is int or type(obj) is float:
-        return str(obj) if precision == 'any' else '{num:.{prec}f}'.format(num=Decimal(str(obj)), prec=precision)
-    if type(obj) is list:
-        for i, item in enumerate(obj):
-            obj[i] = convert_numbers(item, precision)
-    if type(obj) is dict:
-        for k, v in obj.items():
-            print(k)
-            print(v)
-            obj[k] = convert_numbers(v, precision)
-    return obj
-
 @app.post('/')
 def upload():
     id = time.time() * 1000
@@ -71,7 +58,6 @@ def upload():
         os.remove(file)
 
     json_out = eval(res)
-    json_out = convert_numbers(json_out, int(os.getenv('PRECISION')))
         
     return jsonify(success=True, data=json_out)
 

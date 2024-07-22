@@ -135,6 +135,7 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
+                "title": {"type": "string"},
                 "themeColor": {
                     "type": "string",
                     "enum": ["light", "dark", "red", "blue", "green"],
@@ -148,17 +149,6 @@
                             "type": "string",
                             "default": "calc"
                         },
-                        "precision": {
-                            "oneOf": [
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "const": "any"
-                                }
-                            ],
-                            "default": "any"
-                        },
                         "format": {
                             "type": "array",
                             "items": {
@@ -170,7 +160,9 @@
                                             "name": {"type": "string"},
                                             "type": {"const": "graph"},
                                             "x_axis": {"type": "string"},
-                                            "y_axis": {"type": "string"}
+                                            "y_axis": {"type": "string"},
+                                            "x_label": {"type": "string", "default": null},
+                                            "y_label": {"type": "string", "default": null}
                                         },
                                         "required": ["name", "type", "x_axis", "y_axis"]
                                     },
@@ -178,7 +170,35 @@
                                         "additionalProperties": false,
                                         "properties": {
                                             "name": {"type": "string"},
-                                            "type": {"const": "table"}
+                                            "type": {"const": "table"},
+                                            "precision": {
+                                                "type": "integer",
+                                                "default": "any",
+                                                "minimum": 0,
+                                                "maximum": 6
+                                            }
+                                        },
+                                        "required": ["name", "type"]
+                                    },
+                                    {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "name": {"type": "string"},
+                                            "type": {"const": "data_table"},
+                                            "precision": {
+                                                "type": "integer",
+                                                "default": "any",
+                                                "minimum": 0,
+                                                "maximum": 6
+                                            }
+                                        },
+                                        "required": ["name", "type"]
+                                    },
+                                    {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "name": {"type": "string"},
+                                            "type": {"const": "text"}
                                         },
                                         "required": ["name", "type"]
                                     }
@@ -227,7 +247,7 @@
                     }
                 }
             },
-            "required": ["output"]
+            "required": ["output", "title"]
         }
     }
 }

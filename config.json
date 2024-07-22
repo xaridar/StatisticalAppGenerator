@@ -14,7 +14,7 @@
         },
         {
             "name": "k",
-            "description": "Number of Independent Experiments (k)",
+            "description": "Dilution Factor (k)",
             "type": "number",
             "min": 0,
             "max": 1
@@ -28,6 +28,7 @@
         }
     ],
     "settings": {
+        "title": "LOD Calculator",
         "input_file": {
             "enabled": false
         },
@@ -43,6 +44,15 @@
                 {
                     "name": "Table",
                     "type": "table"
+                },
+                {
+                    "name": "Table2",
+                    "type": "data_table",
+                    "precision": 3
+                },
+                {
+                    "name": "Text",
+                    "type": "text"
                 }
             ]
         }

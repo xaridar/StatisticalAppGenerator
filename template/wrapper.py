@@ -62,13 +62,31 @@ output_format = {name.split(':')[0]: name.split(':')[1] for name in output_strin
 output = {}
 for key, value in out_obj.items():
     output[key] = {}
-    output[key]['type'] = output_format[key].split('(')[0]
-    if output[key]['type'] == 'graph':
+    arg_type = output_format[key].split('(')[0]
+    output[key]['type'] = arg_type
+    if arg_type == 'graph':
         x_var = output_format[key][6:-1].split('/')[0]
         y_var = output_format[key][6:-1].split('/')[1]
         output[key]['labels'] = list(value[x_var])
         output[key]['values'] = list(value[y_var])
-    elif output_format[key] == 'table':
-        output[key]['table'] = value
+    elif arg_type == 'table':
+        d = {'columns': ['Param', 'Value']}
+        try:
+            precision = int(output_format[key][6:-1])
+            d['data'] = [[data if isinstance(data, str) else '{num:.{prec}f}'.format(num=data, prec=precision) for data in [ele, value[ele]]] for ele in value]
+        except ValueError:
+            d['data'] = [[str(data) for data in [ele, value[ele]]] for ele in value]
+        output[key]['table'] = d
+    elif arg_type == 'text':
+        output[key]['text'] = str(value)
+    elif arg_type == 'data_table':
+        table = value.to_dict(orient='split', index=False)
+        try:
+            precision = int(output_format[key][11:-1])
+            table['data'] = [[data if isinstance(data, str) else '{num:.{prec}f}'.format(num=data, prec=precision) for data in row] for row in table['data']]
+        except ValueError:
+            table['data'] = [[str(data) for data in row] for row in table['data']]
+        output[key]['type'] = 'table'
+        output[key]['table'] = table
 
 print(output)

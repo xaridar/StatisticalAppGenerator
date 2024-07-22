@@ -248,13 +248,24 @@ if __name__ == '__main__':
         env_vars = {
             'METHOD': cf['settings']['output']['function_name'],
             'LANGUAGE': 'python' if args.math_filepath.split('.')[-1] == 'py' else 'Rscript',
-            'EXTENSION': args.math_filepath.split('.')[-1],
-            'PRECISION': cf['settings']['output']['precision']
+            'EXTENSION': args.math_filepath.split('.')[-1]
         }
 
         bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
 
-        env_vars['OUTPUT_STRING'] = ','.join([f'{option["name"]}:table' if option['type'] == 'table' else f'{option["name"]}:graph({option["x_axis"]}/{option["y_axis"]})' for option in cf['settings']['output']['format']])
+        output_strs = []
+        for option in cf['options'['output']['format']]:
+            match option['name']:
+                case 'graph':
+                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{option["y_axis"]})')
+                case 'table':
+                    output_strs.append(f'{option["name"]}:table({option["precision"]})')
+                case 'text':
+                    output_strs.append(f'{option["name"]}:text')
+                case 'data_table':
+                    output_strs.append(f'{option["name"]}:data_table({option["precision"]})')
+
+        env_vars['OUTPUT_STRING'] = ','.join(output_strs)
         bar()
                 
         if cf['settings']['input_file']['enabled']:
@@ -281,6 +292,11 @@ if __name__ == '__main__':
         for i, option in enumerate(cf['options']):
             div = createInput(html, option)
             form.insert(i, div)
+
+        # adds title
+        title = html.new_tag('h1')
+        title.string = cf['settings']['title']
+        html.find('div', class_='tab active').insert(0, title)
 
         if cf['settings']['input_file']['enabled']:
             graph = cf['settings']['input_file']['graph_input']

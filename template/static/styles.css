@@ -95,6 +95,10 @@ label:has(+ div>.required) > span:not(.file-upload)::after, label:has(+ .require
     padding: 1rem;
 }
 
+.tab h1 {
+    text-align: center;
+}
+
 .tab-handle {
     position: relative;
     width: max-content;

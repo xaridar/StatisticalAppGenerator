@@ -19,4 +19,4 @@ def calc(cv, beta, k, threshold):
     else:
         table['Minimum n'] = below_threshold.n.iloc[0].item()
         table['LOD'] = below_threshold.LOD.iloc[0].item()
-    return {'Graph': lod[lod['n'] <= 50], 'Table': table}
+    return {'Graph': lod[lod['n'] <= 50], 'Table': table, 'Table2': lod[lod['n'] <= 10], 'Text': 'test'}
