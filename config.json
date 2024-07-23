@@ -2,7 +2,7 @@
     "options": [
         {
             "name": "cv",
-            "description": "Coefficient of Variation (CV)",
+            "description": "<a>hello</a>",
             "type": "number"
         },
         {

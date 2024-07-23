@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import json
 import os
 import subprocess
-from decimal import Decimal
+import ast
 
 load_dotenv('.env')
 

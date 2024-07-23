@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from bs4.formatter import HTMLFormatter
 from shutil import copytree, rmtree, copyfile
 from alive_progress import alive_bar
+import numpy as np
+from html import escape
 
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
 outp_path = './app'
@@ -19,8 +21,7 @@ def check_paths():
             if ext not in ['py', 'r']:
                 raise Exception('bad filetype')
     except (Exception):
-        print('Math file must be a valid .r or .py path')
-        return False
+        raise Exception('Math file must be a valid .r or .py path')
 
     if args.config is not None:
         try:
@@ -29,9 +30,7 @@ def check_paths():
                 if ext != 'json':
                     raise Exception('bad filetype')
         except (Exception):
-            print('Config file must be a valid .json path')
-            return False
-    return True
+            raise Exception('Config file must be a valid .json path')
 
 # uses 'default' values in schema to produce default config variables
 def fillDefaults(obj, schema):
@@ -73,8 +72,7 @@ def parseConfigToObj(cf, schema):
     try:
         validate(config, schema)
     except ValidationError as e:
-        print('Invalid config file: ' + e.message)
-        return None
+        raise Exception('Invalid config file: ' + e.message)
     
     return fillDefaults(config, schema)
 
@@ -92,8 +90,6 @@ def createInput(html, options):
                     input['minlength'] = options['minlength']
                 if options['maxlength'] is not None:
                     input['maxlength'] = options['maxlength']
-                if options['pattern'] is not None:
-                    input['pattern'] = options['pattern']['regex']
             if options['type'] == 'number':
                 input['step'] = 'any'
                 if options['min'] is not None:
@@ -115,19 +111,8 @@ def createInput(html, options):
             for option in options['options']:
                 option_el = html.new_tag('option')
                 option_el['value'] = option['value']
-                option_el.string = option['text']
+                option_el.string = escape(option['text'])
                 input.append(option_el)
-        case 'option_group':
-            input = html.new_tag('div')
-            input['id'] = options['id']
-            input['class'] = 'option-group'
-            if options['header'] != '':
-                span = html.new_tag('span')
-                span.string = options['header']
-                input.append(span)
-            for option in options['options']:
-                inp = createInput(html, option)
-                input.append(inp)
 
     div = html.new_tag('div')
     div['class'] = 'option'
@@ -135,14 +120,9 @@ def createInput(html, options):
         label = html.new_tag('label')
         label['for'] = f'{options['name']}_inp'
         span = html.new_tag('span')
-        span.string = options['description']
+        span.string = escape(options['description'])
         label.append(span)
         div.append(label)
-    if 'pattern' in input:
-        small = html.new_tag('small')
-        small.string = f'Pattern: {option["hint"]}'
-        label.append(html.new_tag('br'))
-        label.append(small)
     if options['type'] == 'checkbox':
         hidden = html.new_tag('input')
         hidden['type'] = 'hidden'
@@ -212,23 +192,29 @@ if __name__ == '__main__':
     args = parser.parse_args()
     outp_path = os.path.join(args.out, 'app')
 
-    with alive_bar(10, bar='brackets', spinner='classic', calibrate=40) as bar:
+    with alive_bar(unknown='brackets', spinner='classic', calibrate=40) as bar:
         bar.text('Reading config schema...')
         with open('./schema.json') as jsonschema:
             config_schema = json.load(jsonschema)
         bar()
 
         bar.text('Parsing config...')
-        if not check_paths():
-            
-            sys.exit(1)
+        check_paths()
         if args.config is not None:
             with open(args.config) as cf:
                 cf = parseConfigToObj(cf, config_schema)
-                if cf is None:
-                    sys.exit(0)
         else:
             cf = fillDefaults({}, config_schema)
+        bar()
+
+        # checks for repeat inputs/outputs
+        unique, cts = np.unique([option['name'] for option in cf['options']], return_counts=True)
+        if len(unique[cts > 1]) > 0:
+            raise Exception('Repeated option names not allowed!')
+        
+        unique, cts = np.unique([option['name'] for option in cf['settings']['output']['format']], return_counts=True)
+        if len(unique[cts > 1]) > 0:
+            raise Exception('Repeated output names not allowed!')
         bar()
         
         bar.text('Copying template app...')
@@ -254,10 +240,17 @@ if __name__ == '__main__':
         bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
 
         output_strs = []
-        for option in cf['options'['output']['format']]:
-            match option['name']:
+        graph_obj = {}
+        for option in cf['settings']['output']['format']:
+            match option['type']:
                 case 'graph':
                     output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{option["y_axis"]})')
+                    parent_name = option["parent_name"]
+                    if parent_name is None:
+                        parent_name = option["name"]
+                    if parent_name not in graph_obj:
+                        graph_obj[escape(parent_name)] = []
+                    graph_obj[escape(parent_name)].append({'name': option["name"], 'x': escape(option["x_axis"]), 'y': escape(option["y_axis"])})
                 case 'table':
                     output_strs.append(f'{option["name"]}:table({option["precision"]})')
                 case 'text':
@@ -278,6 +271,15 @@ if __name__ == '__main__':
             file.write('\n'.join([f'{kv[0]}="{kv[1]}"' for kv in env_vars.items()]))
         bar()
 
+        bar.text('Generating JavaScript...')
+        # writes graph_obj to script.js
+        with open(os.path.join(outp_path, 'static/script.js'), 'r') as file:
+            js_contents = file.read()
+        with open(os.path.join(outp_path, 'static/script.js'), 'w') as file:
+            file.write('\n'.join([f'const graphObj = {json.dumps(graph_obj)};', js_contents]))
+        bar()
+
+
         bar.text('Generating HTML...')
         # reads existing HTML template
         with open(os.path.join(inp_path, 'templates/index.html')) as file:
@@ -295,7 +297,7 @@ if __name__ == '__main__':
 
         # adds title
         title = html.new_tag('h1')
-        title.string = cf['settings']['title']
+        title.string = escape(cf['settings']['title'])
         html.find('div', class_='tab active').insert(0, title)
 
         if cf['settings']['input_file']['enabled']:

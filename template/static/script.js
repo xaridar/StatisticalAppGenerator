@@ -1,3 +1,4 @@
+
 let tab = 0;
 let tabs = $('.tab-handle').length;
 let maxTab = 0;
@@ -55,6 +56,59 @@ const drawTabs = () => {
         totalWidth += $(`.tab-handle:nth-child(${i + 1})`).outerWidth();
     }
     $('.tab-handle').css('left', `-${totalWidth}px`);
+}
+
+const escapeHtml = unsafe => {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
+
+const popTab = (data, tab) => {
+    for (const key of Object.keys(data)) {
+        const element = data[key];
+        const h2 = $(document.createElement('h2'));
+        h2.text(key);
+        tab.append(h2);
+        switch (element.type) {
+            case 'graph':
+                break;
+            case 'table':
+                const table = $(document.createElement('table'));
+
+                const thead = $(document.createElement('thead'));
+                for (const col of element.table.columns) {
+                    const th = $(document.createElement('th'));
+                    th.attr('scope', 'col');
+                    th.text(escapeHtml(col));
+                    thead.append(th[0]);
+                }
+                table.append(thead[0]);
+
+                const tbody = $(document.createElement('tbody'));
+                for (const row of element.table.data) {
+                    const tr = $(document.createElement('tr'));
+                    for (const ele of row) {
+                        const td = $(document.createElement('td'));
+                        td.text(escapeHtml(ele));
+                        tr.append(td[0]);
+                    }
+                    tbody.append(tr[0]);
+                }
+                table.append(tbody[0]);
+                tab.append(table[0]);
+                break;
+            case 'text':
+
+                const pre = $(document.createElement('pre'));
+                pre.text(escapeHtml(element.text));
+                tab.append(pre[0]);
+                break;
+        }
+    }
 }
 
 $(() => {
@@ -181,9 +235,10 @@ $(() => {
             const newTab = $(document.createElement('div'));
             newTab.addClass('tab');
             newTab.attr('data-tab', tabs);
-            const pre = document.createElement('pre');
-            pre.textContent = JSON.stringify(res.data, null, 4);
-            newTab.append(pre);
+            h1 = $(document.createElement('h1'));
+            h1.text($('h1').text());
+            newTab.append(h1[0]);
+            popTab(res.data, newTab);
             $('#tabs').append(newTab[0]);
             
             const handle = $((document).createElement('span'));

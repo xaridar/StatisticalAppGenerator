@@ -178,7 +178,7 @@ for (name in names(out_obj)) {
   } else if (arg_type == "data_table") {
     inner_list$type <- "table"
     rows <- split(value, seq_len(nrow(value)))
-    table <- list(data = vector())
+    table <- list(data = vector(), columns = names(value))
     precision <- suppressWarnings(as.integer(
       substring(
                 output_format[key],

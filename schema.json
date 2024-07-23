@@ -9,21 +9,15 @@
                 {
                     "additionalProperties": false,
                     "properties": {
-                        "name": {"type": "string"},
+                        "name": {
+                            "type": "string",
+                            "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                        },
                         "description": {"type": "string"},
                         "type": {"const": "text"},
                         "optional": {
                             "type": "boolean",
                             "default": false
-                        },
-                        "pattern": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "properties": {
-                                "regex": {"type": "string"},
-                                "hint": {"type": "string"}
-                            },
-                            "default": null
                         },
                         "minlength": {
                             "type": "number",
@@ -39,7 +33,10 @@
                 {
                     "additionalProperties": false,
                     "properties": {
-                        "name": {"type": "string"},
+                        "name": {
+                            "type": "string",
+                            "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                        },
                         "description": {"type": "string"},
                         "type": {"const": "checkbox"},
                         "optional": {
@@ -52,7 +49,10 @@
                 {
                     "additionalProperties": false,
                     "properties": {
-                        "name": {"type": "string"},
+                        "name": {
+                            "type": "string",
+                            "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                        },
                         "description": {"type": "string"},
                         "type": {"const": "number"},
                         "optional": {
@@ -77,7 +77,10 @@
                 {
                     "additionalProperties": false,
                     "properties": {
-                        "name": {"type": "string"},
+                        "name": {
+                            "type": "string",
+                            "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                        },
                         "description": {"type": "string"},
                         "type": {"const": "select"},
                         "optional": {
@@ -91,7 +94,10 @@
                                 "additionalProperties": false,
                                 "properties": {
                                     "text": {"type": "string"},
-                                    "value": {"type": "string"}
+                                    "value": {
+                                        "type": "string",
+                                        "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                    }
                                 }
                             }
                         },
@@ -101,24 +107,6 @@
                         }
                     },
                     "required": ["name", "description", "type", "options"]
-                },
-                {
-                    "additionalProperties": false,
-                    "properties": {
-                        "type": {"const": "option_group"},
-                        "header": {
-                            "type": "string",
-                            "default": ""
-                        },
-                        "id": {"type": "string"},
-                        "options": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/option"
-                            }
-                        }
-                    },
-                    "required": ["type", "id", "options"]
                 }
             ]
         }
@@ -157,19 +145,32 @@
                                     {
                                         "additionalProperties": false,
                                         "properties": {
-                                            "name": {"type": "string"},
+                                            "name": {
+                                                "type": "string",
+                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                            },
                                             "type": {"const": "graph"},
-                                            "x_axis": {"type": "string"},
-                                            "y_axis": {"type": "string"},
+                                            "x_axis": {
+                                                "type": "string",
+                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                            },
+                                            "y_axis": {
+                                                "type": "string",
+                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                            },
                                             "x_label": {"type": "string", "default": null},
-                                            "y_label": {"type": "string", "default": null}
+                                            "y_label": {"type": "string", "default": null},
+                                            "parent_name": {"type": "string", "default": null}
                                         },
                                         "required": ["name", "type", "x_axis", "y_axis"]
                                     },
                                     {
                                         "additionalProperties": false,
                                         "properties": {
-                                            "name": {"type": "string"},
+                                            "name": {
+                                                "type": "string",
+                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                            },
                                             "type": {"const": "table"},
                                             "precision": {
                                                 "type": "integer",
@@ -183,7 +184,10 @@
                                     {
                                         "additionalProperties": false,
                                         "properties": {
-                                            "name": {"type": "string"},
+                                            "name": {
+                                                "type": "string",
+                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                            },
                                             "type": {"const": "data_table"},
                                             "precision": {
                                                 "type": "integer",
@@ -197,7 +201,10 @@
                                     {
                                         "additionalProperties": false,
                                         "properties": {
-                                            "name": {"type": "string"},
+                                            "name": {
+                                                "type": "string",
+                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                            },
                                             "type": {"const": "text"}
                                         },
                                         "required": ["name", "type"]
@@ -249,5 +256,6 @@
             },
             "required": ["output", "title"]
         }
-    }
+    },
+    "required": ["settings"]
 }

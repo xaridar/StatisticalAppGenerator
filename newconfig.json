@@ -1,0 +1,26 @@
+{
+    "options": [
+        {
+            "name": "string",
+            "type": "text",
+            "description": "string"
+        }
+    ],
+    "settings": {
+        "title": "Test",
+        "input_file": {"enabled": false},
+        "output": {
+            "format": [
+                {
+                    "name": "Text",
+                    "type": "text"
+                },
+                {
+                    "name": "DT",
+                    "type": "data_table",
+                    "precision": 0
+                }
+            ]
+        }
+    }
+}

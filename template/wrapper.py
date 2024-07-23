@@ -86,6 +86,7 @@ for key, value in out_obj.items():
             table['data'] = [[data if isinstance(data, str) else '{num:.{prec}f}'.format(num=data, prec=precision) for data in row] for row in table['data']]
         except ValueError:
             table['data'] = [[str(data) for data in row] for row in table['data']]
+        table['columns'] = [str(el) for el in table['columns']]
         output[key]['type'] = 'table'
         output[key]['table'] = table
 
