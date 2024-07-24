@@ -149,6 +149,7 @@
                                                 "type": "string",
                                                 "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
                                             },
+                                            "description": {"type": "string"},
                                             "type": {"const": "graph"},
                                             "x_axis": {
                                                 "type": "string",
@@ -158,11 +159,18 @@
                                                 "type": "string",
                                                 "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
                                             },
-                                            "x_label": {"type": "string", "default": null},
-                                            "y_label": {"type": "string", "default": null},
-                                            "parent_name": {"type": "string", "default": null}
+                                            "plot_type": {
+                                                "type": "string",
+                                                "enum": ["scatter", "line"],
+                                                "default": "scatter"
+                                            },
+                                            "parent_name": {
+                                                "type": "string",
+                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$",
+                                                "default": null
+                                            }
                                         },
-                                        "required": ["name", "type", "x_axis", "y_axis"]
+                                        "required": ["name", "description", "type", "x_axis", "y_axis"]
                                     },
                                     {
                                         "additionalProperties": false,
@@ -171,15 +179,28 @@
                                                 "type": "string",
                                                 "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
                                             },
+                                            "description": {"type": "string"},
                                             "type": {"const": "table"},
                                             "precision": {
-                                                "type": "integer",
-                                                "default": "any",
-                                                "minimum": 0,
-                                                "maximum": 6
+                                                "oneOf": [
+                                                    {
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 6
+                                                    },
+                                                    {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer",
+                                                            "minimum": 0,
+                                                            "maximum": 6
+                                                        }
+                                                    }
+                                                ],
+                                                "default": "any"
                                             }
                                         },
-                                        "required": ["name", "type"]
+                                        "required": ["name", "description", "type"]
                                     },
                                     {
                                         "additionalProperties": false,
@@ -188,15 +209,28 @@
                                                 "type": "string",
                                                 "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
                                             },
+                                            "description": {"type": "string"},
                                             "type": {"const": "data_table"},
                                             "precision": {
-                                                "type": "integer",
-                                                "default": "any",
-                                                "minimum": 0,
-                                                "maximum": 6
+                                                "oneOf": [
+                                                    {
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 6
+                                                    },
+                                                    {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer",
+                                                            "minimum": 0,
+                                                            "maximum": 6
+                                                        }
+                                                    }
+                                                ],
+                                                "default": "any"
                                             }
                                         },
-                                        "required": ["name", "type"]
+                                        "required": ["name", "description", "type"]
                                     },
                                     {
                                         "additionalProperties": false,
@@ -205,9 +239,10 @@
                                                 "type": "string",
                                                 "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
                                             },
+                                            "description": {"type": "string"},
                                             "type": {"const": "text"}
                                         },
-                                        "required": ["name", "type"]
+                                        "required": ["name", "description", "type"]
                                     }
                                 ]
                             }
@@ -233,13 +268,18 @@
                                 "type": "object",
                                 "additionalProperties": false,
                                 "properties": {
-                                    "name": {"type": "string"},
+                                    "name": {
+                                        "type": "string",
+                                        "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                    },
                                     "x_param": {
                                         "type": "string",
+                                        "pattern": "^[^\",]+$",
                                         "default": "x"
                                     },
                                     "y_param": {
                                         "type": "string",
+                                        "pattern": "^[^\",]+$",
                                         "default": "y"
                                     },
                                     "optional": {

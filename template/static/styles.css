@@ -228,6 +228,7 @@ form.calcForm {
     padding: 0.25rem 0.75rem;
     border: 0;
     text-align: center;
+    max-width: 50%;
 }
 
 .calcForm input[type="text"]:focus-visible, .calcForm input[type="number"]:focus-visible, .calcForm select:focus-visible, .calcForm .file-upload:focus-visible {
@@ -305,4 +306,20 @@ form.calcForm {
 
 .file-ctr div>label {
     margin-block: 0;
+}
+
+/* Tables */
+.output-ctr table {
+    border-collapse: collapse;
+    border-color: var(--font-color);
+    border-style: hidden;
+}
+
+.output-ctr table thead {
+    border-bottom: 1px solid;
+}
+
+.output-ctr table th, table td {
+    padding: 0.25rem 0.55rem;
+    border-inline: 1px solid;
 }

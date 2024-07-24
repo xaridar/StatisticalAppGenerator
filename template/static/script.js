@@ -3,6 +3,7 @@ let tab = 0;
 let tabs = $('.tab-handle').length;
 let maxTab = 0;
 let firstTab = 0;
+const graphs = {};
 
 const changeTab = (tabNum) => {
     if (tabNum >= tabs) return;
@@ -58,32 +59,98 @@ const drawTabs = () => {
     $('.tab-handle').css('left', `-${totalWidth}px`);
 }
 
-const escapeHtml = unsafe => {
-    return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
- }
-
 const popTab = (data, tab) => {
+    const fontColor = getComputedStyle(document.body).getPropertyValue('--font-color');
+    const gridColor = getComputedStyle(document.body).getPropertyValue('--grid-color');
     for (const key of Object.keys(data)) {
         const element = data[key];
-        const h2 = $(document.createElement('h2'));
-        h2.text(key);
-        tab.append(h2);
+        const div = document.createElement('div');
+        div.classList.add('output-ctr');
+        div.id = `output${key}`
         switch (element.type) {
-            case 'graph':
+            case 'graph': {
+                let graphName, obj;
+                for (const name in graphObj) {
+                    if (graphObj[name].map(el => el.name).includes(key)) {
+                        graphName = name;
+                        obj = graphObj[name].filter(el => el.name === key)[0];
+                    }
+                }
+                if (!graphName) return;
+                const labelsSet = new Set(element.labels);
+                const values = element.labels.map(((label, i) => ({x: label, y: element.values[i]})));
+                const dataset = {
+                    label: obj.description,
+                    data: values,
+                    type: obj.type
+                }
+                if (graphs[maxTab] && Object.keys(graphs[maxTab]).includes(graphName)) {
+                    const graph = graphs[maxTab][graphName];
+                    graph.data.labels.forEach(labelsSet.add, labelsSet);
+                    graph.data.labels = [...labelsSet].sort((a, b) => a - b);
+                    graph.data.datasets.push(dataset);
+                    graph.update();
+                } else {
+                    labels = [...labelsSet].sort((a, b) => a - b);
+                    const canvas = document.createElement('canvas');
+                    $(canvas).addClass('output-graph');
+                    div.appendChild(canvas);
+                    
+                    // show chart
+                    const ctx = canvas.getContext('2d');
+                    const graph = new Chart(ctx, {
+                        data: {
+                            labels,
+                            datasets: [dataset]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    title: {
+                                        text: obj.x,
+                                        display: true,
+                                        color: fontColor
+                                    },
+                                    ticks: {
+                                        color: fontColor
+                                    },
+                                    grid: {
+                                        color: gridColor
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        text: obj.y,
+                                        display: true,
+                                        color: fontColor
+                                    },
+                                    ticks: {
+                                        color: fontColor
+                                    },
+                                    grid: {
+                                        color: gridColor
+                                    }
+                                }
+                            },
+                            responsive: true,
+                        }
+                    });
+                    if (!Object.keys(graphs).includes(maxTab)) graphs[maxTab] = {};
+                    graphs[maxTab][graphName] = graph;
+                }
                 break;
-            case 'table':
+            }
+            case 'table': {
+                const h2 = document.createElement('h2');
+                h2.textContent = key;
+                div.appendChild(h2);
                 const table = $(document.createElement('table'));
 
                 const thead = $(document.createElement('thead'));
                 for (const col of element.table.columns) {
                     const th = $(document.createElement('th'));
                     th.attr('scope', 'col');
-                    th.text(escapeHtml(col));
+                    th.text(col);
                     thead.append(th[0]);
                 }
                 table.append(thead[0]);
@@ -93,21 +160,26 @@ const popTab = (data, tab) => {
                     const tr = $(document.createElement('tr'));
                     for (const ele of row) {
                         const td = $(document.createElement('td'));
-                        td.text(escapeHtml(ele));
+                        td.text(ele);
                         tr.append(td[0]);
                     }
                     tbody.append(tr[0]);
                 }
                 table.append(tbody[0]);
-                tab.append(table[0]);
+                div.appendChild(table[0]);
                 break;
-            case 'text':
-
+            }
+            case 'text': {
+                const h2 = document.createElement('h2');
+                h2.textContent = key;
+                div.appendChild(h2);
                 const pre = $(document.createElement('pre'));
-                pre.text(escapeHtml(element.text));
-                tab.append(pre[0]);
+                pre.text(element.text);
+                div.appendChild(pre[0]);
                 break;
+            }
         }
+        tab.append(div);
     }
 }
 
@@ -229,6 +301,7 @@ $(() => {
             contentType: false,
             processData: false,
         });
+        $(this).find('input, button, select').prop('disabled', false);
         console.log(res);
         if (res.success) {
             maxTab++;
@@ -236,7 +309,7 @@ $(() => {
             newTab.addClass('tab');
             newTab.attr('data-tab', tabs);
             h1 = $(document.createElement('h1'));
-            h1.text($('h1').text());
+            h1.text($('.tab[data-tab="0"] h1').text());
             newTab.append(h1[0]);
             popTab(res.data, newTab);
             $('#tabs').append(newTab[0]);
@@ -255,7 +328,6 @@ $(() => {
             tabs++;
             changeTab(tabs-1);
         }
-        $(this).find('input, button, select').prop('disabled', false);
     });
 
     $(document).on('click', '.tab-handle', function(e) {

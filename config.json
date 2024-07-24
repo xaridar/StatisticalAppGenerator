@@ -2,7 +2,7 @@
     "options": [
         {
             "name": "cv",
-            "description": "<a>hello</a>",
+            "description": "Coefficient of Variation (CV)",
             "type": "number"
         },
         {
@@ -37,21 +37,36 @@
             "format": [
                 {
                     "name": "Graph",
+                    "description": "Input CV",
                     "type": "graph",
                     "x_axis": "n",
-                    "y_axis": "LOD"
+                    "y_axis": "LOD",
+                    "plot_type": "line"
+                },
+                {
+                    "name": "Graph1",
+                    "description": "CV = 0",
+                    "type": "graph",
+                    "x_axis": "n",
+                    "y_axis": "LOD2",
+                    "plot_type": "line",
+                    "parent_name": "Graph"
                 },
                 {
                     "name": "Table",
-                    "type": "table"
+                    "description": "Table",
+                    "type": "table",
+                    "precision": 1
                 },
                 {
                     "name": "Table2",
+                    "description": "Table2",
                     "type": "data_table",
-                    "precision": 3
+                    "precision": [0,3,3]
                 },
                 {
                     "name": "Text",
+                    "description": "Text",
                     "type": "text"
                 }
             ]

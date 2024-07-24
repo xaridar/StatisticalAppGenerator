@@ -208,9 +208,9 @@ if __name__ == '__main__':
         bar()
 
         # checks for repeat inputs/outputs
-        unique, cts = np.unique([option['name'] for option in cf['options']], return_counts=True)
+        unique, cts = np.unique([option['name'] for option in [*cf['options'], *cf['settings']['input_file']['files']]], return_counts=True)
         if len(unique[cts > 1]) > 0:
-            raise Exception('Repeated option names not allowed!')
+            raise Exception('Repeated option/file names not allowed!')
         
         unique, cts = np.unique([option['name'] for option in cf['settings']['output']['format']], return_counts=True)
         if len(unique[cts > 1]) > 0:
@@ -250,13 +250,14 @@ if __name__ == '__main__':
                         parent_name = option["name"]
                     if parent_name not in graph_obj:
                         graph_obj[escape(parent_name)] = []
-                    graph_obj[escape(parent_name)].append({'name': option["name"], 'x': escape(option["x_axis"]), 'y': escape(option["y_axis"])})
+                    graph_obj[parent_name].append({'name': option["name"], 'description': option["description"], 'x': option["x_axis"], 'y': option["y_axis"], 'type': option["plot_type"]})
                 case 'table':
-                    output_strs.append(f'{option["name"]}:table({option["precision"]})')
+                    print(option["precision"])
+                    output_strs.append(f'{option["name"]}:table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
                 case 'text':
                     output_strs.append(f'{option["name"]}:text')
                 case 'data_table':
-                    output_strs.append(f'{option["name"]}:data_table({option["precision"]})')
+                    output_strs.append(f'{option["name"]}:data_table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
 
         env_vars['OUTPUT_STRING'] = ','.join(output_strs)
         bar()

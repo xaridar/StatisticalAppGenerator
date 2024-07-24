@@ -43,12 +43,12 @@ if (length(args) > 5) {
   args_obj <- list()
 }
 
-load_file <- function(file, files_obj) {
+load_file <- function(file, args_obj) {
   csv <- read.csv(file.path("temp", file), header = TRUE)
   split <- strsplit(file, "_", fixed = TRUE)
   name <- paste(split[[1]][1:(length(split[[1]]) - 1)], sep = "_")
-  files_obj[[name]] <- csv
-  files_obj
+  args_obj[[name]] <- csv
+  args_obj
 }
 
 convert_list <- function(val) {
@@ -93,13 +93,9 @@ convert_list <- function(val) {
 if (id != "noid") {
   files <- list.files("./temp", pattern = sprintf("\\s*_%s.csv", id))
 
-  # bind 'files' dataframe
-  files_obj <- list()
   for (i in seq_along(files)) {
-    files_obj <- load_file(files[i], files_obj = files_obj)
+    args_obj <- load_file(files[i], args_obj = args_obj)
   }
-
-  args_obj$files <- files_obj
 }
 
 options(warn = -1)
@@ -144,56 +140,70 @@ for (name in names(out_obj)) {
   } else if (arg_type == "table") {
     d <- list(columns = c("Param", "Value"))
     data <- vector()
-    # TODO: WHY'S IT GOIN TO NO PREC AAAA
-    precision <- suppressWarnings(as.integer(
+    precision <- suppressWarnings(as.integer(strsplit(
       substring(
                 output_format[key],
                 7,
                 nchar(output_format[key]) - 1)
-    ))
-    if (!is.na(precision)) {
+    , "\\|")[[1]]))
+    if (!any(is.na(precision))) {
+      if (length(precision) != 1 && length(precision) != 2) {
+        cat(convert_list(list(error = "Table precision should either be \\'any\\', a single integer between 0 and 6, or an array with an integer for each resulting column.")))
+        quit()
+      }
+      if (length(precision) == 1) {
+        precision <- rep(precision, 2)
+      }
       for (ele in names(value)) {
         if (is.character(ele)) {
           first_elem <- ele
         } else {
-          first_elem <- formatC(ele, format = "f", digits = precision)
+          first_elem <- formatC(ele, format = "f", digits = precision[1])
         }
         if (is.character(value[ele][[1]])) {
           second_elem <- value[ele][[1]]
         } else {
-          second_elem <- formatC(value[ele][[1]], format = "f", digits = 3)
+          second_elem <- formatC(value[ele][[1]], format = "f", digits = precision[2])
         }
         data <- c(data, convert_list(c(first_elem, second_elem)))
       }
     } else {
       for (ele in names(value)) {
-        print(length(data) + 1)
         data <- c(data, convert_list(c(ele, value[ele][[1]])))
       }
     }
     d$data <- data
     inner_list$table <- d
   } else if (arg_type == "text") {
-    inner_list$test <- as.character(value)
+    inner_list$text <- as.character(value)
   } else if (arg_type == "data_table") {
     inner_list$type <- "table"
     rows <- split(value, seq_len(nrow(value)))
     table <- list(data = vector(), columns = names(value))
-    precision <- suppressWarnings(as.integer(
+    precision <- suppressWarnings(as.integer(strsplit(
       substring(
                 output_format[key],
-                7,
+                12,
                 nchar(output_format[key]) - 1)
-    ))
-    if (!is.na(precision)) {
+    , "\\|")[[1]]))
+    if (!any(is.na(precision))) {
+      if (length(precision) != 1 && length(precision) != length(names(value))) {
+        cat(convert_list(list(error = "Table precision should either be \\'any\\', a single integer between 0 and 6, or an array with an integer for each resulting column.")))
+        quit()
+      }
+      if (length(precision) == 1) {
+        precision <- rep(precision, length(names(values)))
+      }
       for (row in rows) {
         new_row <- vector()
+        i <- 1
         for (ele in row) {
           if (is.character(ele)) {
             new_row <- c(new_row, ele)
           } else {
-            new_row <- c(new_row, formatC(ele, format = "f", digits = precision))
+            new_row <- c(new_row, formatC(ele, format = "f", digits = precision[i]))
           }
+          i <- i + 1
         }
         table$data <- c(table$data, convert_list(new_row))
       }

@@ -45,14 +45,12 @@ if len(args) > 5:
 else:
     as_obj = {}
 if id != 'noid':
-    as_obj['files'] = {}
-
     file_names = [file for file in os.listdir('temp') if file.endswith(f'_{id}.csv')]
     for file in file_names:
         with open(os.path.join('temp', file)) as f:
             csv = pd.read_csv(f)
             name = file.rsplit('_')[0]
-            as_obj['files'][name] = csv
+            as_obj[name] = csv
 
 method = load_as_module(filename).__getattribute__(method_name)
 out_obj = method(**as_obj)
@@ -72,8 +70,13 @@ for key, value in out_obj.items():
     elif arg_type == 'table':
         d = {'columns': ['Param', 'Value']}
         try:
-            precision = int(output_format[key][6:-1])
-            d['data'] = [[data if isinstance(data, str) else '{num:.{prec}f}'.format(num=data, prec=precision) for data in [ele, value[ele]]] for ele in value]
+            precision = [int(prec) for prec in output_format[key][6:-1].split('|')]
+            if len(precision) != 1 and len(precision) != 2:
+                print({'error': "Table precision should either be \\'any\\', a single int between 0 and 6, or an array with 1 int for each resulting column."})
+                sys.exit(0)
+            if len(precision) == 1:
+                precision *= 2
+            d['data'] = [[data if isinstance(data, str) else '{num:.{prec}f}'.format(num=data, prec=precision[i]) for i, data in enumerate([ele, value[ele]])] for ele in value]
         except ValueError:
             d['data'] = [[str(data) for data in [ele, value[ele]]] for ele in value]
         output[key]['table'] = d
@@ -82,8 +85,13 @@ for key, value in out_obj.items():
     elif arg_type == 'data_table':
         table = value.to_dict(orient='split', index=False)
         try:
-            precision = int(output_format[key][11:-1])
-            table['data'] = [[data if isinstance(data, str) else '{num:.{prec}f}'.format(num=data, prec=precision) for data in row] for row in table['data']]
+            precision = [int(prec) for prec in output_format[key][11:-1].split('|')]
+            if len(precision) != 1 and len(precision) != len(table['columns']):
+                print({'error': "Table precision should either be \\'any\\', a single int between 0 and 6, or an array with 1 int for each resulting column."})
+                sys.exit(0)
+            if len(precision) == 1:
+                precision *= len(table['columns'])
+            table['data'] = [[data if isinstance(data, str) else '{num:.{prec}f}'.format(num=data, prec=precision[i]) for i, data in enumerate(row)] for row in table['data']]
         except ValueError:
             table['data'] = [[str(data) for data in row] for row in table['data']]
         table['columns'] = [str(el) for el in table['columns']]
