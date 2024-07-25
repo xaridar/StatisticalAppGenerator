@@ -9,6 +9,7 @@ from shutil import copytree, rmtree, copyfile
 from alive_progress import alive_bar
 import numpy as np
 from html import escape
+import copy
 
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
 outp_path = './app'
@@ -104,6 +105,8 @@ def createInput(html, options):
             input['name'] = options['name']
             if not options['optional']:
                 input['class'] = 'required'
+            if options['multiselect']:
+                input['multiple'] = ''
             def_el = html.new_tag('option')
             def_el['disabled'] = ''
             def_el['value'] = ''
@@ -113,12 +116,56 @@ def createInput(html, options):
                 option_el['value'] = option['value']
                 option_el.string = escape(option['text'])
                 input.append(option_el)
+        case 'array':
+            input = html.new_tag('div')
+
+            inp = html.new_tag('input')
+            inp['type'] = options['items']['type']
+            inp['id'] = f'{options['name']}_'
+            inp['name'] = options['name']
+            if not options['optional']:
+                inp['class'] = 'required'
+            if options['items']['type'] == 'text':
+                if options['items']['minlength'] > 0:
+                    inp['minlength'] = options['items']['minlength']
+                if options['items']['maxlength'] is not None:
+                    inp['maxlength'] = options['items']['maxlength']
+            if options['items']['type'] == 'number':
+                inp['step'] = 'any'
+                if options['items']['min'] is not None:
+                    inp['min'] = options['items']['min']
+                if options['items']['max'] is not None:
+                    inp['max'] = options['items']['max']
+                if options['items']['integer']:
+                    inp['step'] = '1'
+            sublabel = html.new_tag('label')
+            sublabel['for'] = f'{options["name"]}_'
+            span = html.new_tag('span')
+            span.string = 'Element '
+            sublabel.append(span)
+            
+            if isinstance(options['length'], int):
+                num_inps = options['length']
+            else:
+                num_inps = 1
+            
+            for idx in range(num_inps):
+                it_inp = copy.copy(inp)
+                it_label = copy.copy(sublabel)
+                it_inp['id'] += str(idx)
+                it_label['for'] += str(idx)
+                it_label.findChildren('span')[0].string += str(idx)
+                input.append(it_label)
+                input.append(it_inp)
+
+            input['id'] = f'{options['name']}_inp'
+            input['class'] = 'option_array'
 
     div = html.new_tag('div')
     div['class'] = 'option'
     if 'description' in options:
         label = html.new_tag('label')
-        label['for'] = f'{options['name']}_inp'
+        label['for'] = f'{options["name"]}_inp'
         span = html.new_tag('span')
         span.string = escape(options['description'])
         label.append(span)
@@ -216,19 +263,6 @@ if __name__ == '__main__':
         if len(unique[cts > 1]) > 0:
             raise Exception('Repeated output names not allowed!')
         bar()
-        
-        bar.text('Copying template app...')
-        # copies 'template' directory (in executable) to new 'app' directory
-        if os.path.exists(outp_path):
-            rmtree(outp_path)
-            bar()
-        copytree(inp_path, outp_path)
-        bar()
-
-        bar.text(f'Copying {args.math_filepath} to app...')
-        # copies math file into app
-        copyfile(args.math_filepath, os.path.join(outp_path, f'calculation.{args.math_filepath.split('.')[-1]}'))
-        bar()
 
         # creates generated .env file
         env_vars = {
@@ -236,8 +270,6 @@ if __name__ == '__main__':
             'LANGUAGE': 'python' if args.math_filepath.split('.')[-1] == 'py' else 'Rscript',
             'EXTENSION': args.math_filepath.split('.')[-1]
         }
-
-        bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
 
         output_strs = []
         graph_obj = {}
@@ -252,13 +284,13 @@ if __name__ == '__main__':
                         graph_obj[escape(parent_name)] = []
                     graph_obj[parent_name].append({'name': option["name"], 'description': option["description"], 'x': option["x_axis"], 'y': option["y_axis"], 'type': option["plot_type"]})
                 case 'table':
-                    print(option["precision"])
                     output_strs.append(f'{option["name"]}:table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
                 case 'text':
                     output_strs.append(f'{option["name"]}:text')
                 case 'data_table':
                     output_strs.append(f'{option["name"]}:data_table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
 
+        env_vars['OPTIONS'] = json.dumps(cf['options'])
         env_vars['OUTPUT_STRING'] = ','.join(output_strs)
         bar()
                 
@@ -266,18 +298,7 @@ if __name__ == '__main__':
             for option in cf['settings']['input_file']['files']:
                 env_vars[f'XVAR_{option['name']}'] = option['x_param']
                 env_vars[f'YVAR_{option['name']}'] = option['y_param']
-        bar()
-
-        with open(os.path.join(outp_path, '.env'), 'w') as file:
-            file.write('\n'.join([f'{kv[0]}="{kv[1]}"' for kv in env_vars.items()]))
-        bar()
-
-        bar.text('Generating JavaScript...')
-        # writes graph_obj to script.js
-        with open(os.path.join(outp_path, 'static/script.js'), 'r') as file:
-            js_contents = file.read()
-        with open(os.path.join(outp_path, 'static/script.js'), 'w') as file:
-            file.write('\n'.join([f'const graphObj = {json.dumps(graph_obj)};', js_contents]))
+                env_vars[f'REQUIRED_{option['name']}'] = not option['optional']
         bar()
 
 
@@ -310,6 +331,20 @@ if __name__ == '__main__':
         # set color theme
         body = base_html.find('body')
         body['color'] = cf['settings']['themeColor']
+        
+        bar.text('Copying template app...')
+        # copies 'template' directory (in executable) to new 'app' directory
+        if os.path.exists(outp_path):
+            rmtree(outp_path)
+            bar()
+        copytree(inp_path, outp_path)
+        bar()
+
+        bar.text(f'Copying {args.math_filepath} to app...')
+        # copies math file into app
+        copyfile(args.math_filepath, os.path.join(outp_path, f'calculation.{args.math_filepath.split('.')[-1]}'))
+        bar()
+
             
         # writes output
         formatter = HTMLFormatter(indent=4)
@@ -317,6 +352,20 @@ if __name__ == '__main__':
             file.write(html.prettify(formatter=formatter))
         with open(os.path.join(outp_path, 'templates/base.html'), 'w') as file:
             file.write(base_html.prettify(formatter=formatter))
+        bar()
+
+
+        bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
+        with open(os.path.join(outp_path, '.env'), 'w') as file:
+            file.write('\n'.join([f'{kv[0]}={kv[1]}' for kv in env_vars.items()]))
+        bar()
+
+        bar.text('Generating JavaScript...')
+        # writes graph_obj to script.js
+        with open(os.path.join(inp_path, 'static/script.js'), 'r') as file:
+            js_contents = file.read()
+        with open(os.path.join(outp_path, 'static/script.js'), 'w') as file:
+            file.write('\n'.join([f'const graphObj = {json.dumps(graph_obj)};', js_contents]))
         bar()
 
     print(f'App generated at {os.path.abspath(outp_path)}')

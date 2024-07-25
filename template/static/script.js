@@ -291,7 +291,11 @@ $(() => {
             return !$(el).val() || $(el).val() == "";
         })) return;
         const data = new FormData(this);
+        for (const e of data.entries()) {
+            if (e[1] == '') data.delete(e[0]);
+        }
         $(this).find('input, button, select').prop('disabled', true);
+        $(this).find('.file-upload').toggleClass('disabled', true);
         const method = $(this).attr('method');
         const action = $(this).attr('action');
         
@@ -302,6 +306,7 @@ $(() => {
             processData: false,
         });
         $(this).find('input, button, select').prop('disabled', false);
+        $(this).find('.file-upload').toggleClass('disabled', false);
         console.log(res);
         if (res.success) {
             maxTab++;

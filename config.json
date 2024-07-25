@@ -25,12 +25,42 @@
             "type": "number",
             "integer": true,
             "min": 0
+        },
+        {
+            "type": "array",
+            "description": "test",
+            "optional": true,
+            "name": "array",
+            "items": {
+                "type": "text"
+            },
+            "length": "*threshold"
+        },
+        {
+            "type": "select",
+            "multiselect": true,
+            "options": [{
+                "text": "1",
+                "value": "1"
+            }, {
+                "text": "2",
+                "value": "2"
+            }],
+            "description": "Select!",
+            "name": "select"
         }
     ],
     "settings": {
         "title": "LOD Calculator",
         "input_file": {
-            "enabled": false
+            "files": [
+                {
+                    "name": "file",
+                    "x_param": "x",
+                    "y_param": "y",
+                    "optional": true
+                }
+            ]
         },
         "themeColor": "blue",
         "output": {

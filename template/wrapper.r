@@ -21,7 +21,7 @@ parse_args <- function(args) {
         val <- num
       } else {
         # string
-        val <- args[i]
+        val <- strsplit(args[i], ", ")
       }
     }
     obj[[short_word]] <- val
@@ -118,6 +118,9 @@ for (name in names(out_obj)) {
   key <- name
   value <- out_obj[[name]]
   inner_list <- list()
+  if (!(key %in% names(output_format))) {
+    next
+  }
   arg_type <- strsplit(output_format[key][[1]], "\\(")[[1]][1]
   inner_list$type <- arg_type
   if (arg_type == "graph") {

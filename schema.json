@@ -96,7 +96,7 @@
                                     "text": {"type": "string"},
                                     "value": {
                                         "type": "string",
-                                        "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                        "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
                                     }
                                 }
                             }
@@ -107,6 +107,73 @@
                         }
                     },
                     "required": ["name", "description", "type", "options"]
+                },
+                {
+                    "additionalProperties": false,
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                        },
+                        "description": {"type": "string"},
+                        "length": {
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "pattern": "^\\*(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                },
+                                {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            ]
+                        },
+                        "type": {"const": "array"},
+                        "optional": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "items": {
+                            "type": "object",
+                            "anyOf": [
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "type": {"const": "text"},
+                                        "minlength": {
+                                            "type": "number",
+                                            "default": 0
+                                        },
+                                        "maxlength": {
+                                            "type": "number",
+                                            "default": null
+                                        }
+                                    },
+                                    "required": ["type"]
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "type": {"const": "number"},
+                                        "min": {
+                                            "type": "number",
+                                            "default": null
+                                        },
+                                        "max": {
+                                            "type": "number",
+                                            "default": null
+                                        },
+                                        "integer": {
+                                            "type": "boolean",
+                                            "default": false
+                                        }
+                                    },
+                                    "required": ["type"]
+                                }
+                            ]
+                        }
+                    },
+                    "required": ["name", "description", "type", "items", "length"]
                 }
             ]
         }
@@ -153,11 +220,11 @@
                                             "type": {"const": "graph"},
                                             "x_axis": {
                                                 "type": "string",
-                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                                "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
                                             },
                                             "y_axis": {
                                                 "type": "string",
-                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                                "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
                                             },
                                             "plot_type": {
                                                 "type": "string",
@@ -166,7 +233,7 @@
                                             },
                                             "parent_name": {
                                                 "type": "string",
-                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$",
+                                                "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$",
                                                 "default": null
                                             }
                                         },
@@ -225,6 +292,9 @@
                                                             "minimum": 0,
                                                             "maximum": 6
                                                         }
+                                                    },
+                                                    {
+                                                        "const": "any"
                                                     }
                                                 ],
                                                 "default": "any"

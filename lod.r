@@ -2,7 +2,7 @@ library(dplyr)
 
 lod_calc <- function(n, cv, beta, k) {
   if (cv == 0) {
-    return(log(beta) / (n * k))
+    return(-log(beta) / (n * k))
   }
   d <- 1 / cv ^ 2
   ((d / beta ^ (1 / (n * d))) - d) / k

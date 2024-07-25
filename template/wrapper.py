@@ -22,7 +22,7 @@ def convert_to_obj(args):
                 obj[word[1:]] = float(args[i])
             else:
                 # string
-                obj[word[1:]] = args[i]
+                obj[word[1:]] = args[i].split(', ')
         i += 1
     return obj
 
@@ -60,6 +60,8 @@ output_format = {name.split(':')[0]: name.split(':')[1] for name in output_strin
 output = {}
 for key, value in out_obj.items():
     output[key] = {}
+    if key not in output_format:
+        continue
     arg_type = output_format[key].split('(')[0]
     output[key]['type'] = arg_type
     if arg_type == 'graph':

@@ -214,15 +214,19 @@ form.calcForm {
     transition: padding 0.5s ease;
 }
 
-.calcForm button[type="submit"]:hover {
+.calcForm button[type="submit"]:not(:disabled):hover {
     padding: 0.5em 2.5em;
+}
+
+.calcForm button[type="submit"]:disabled {
+    border-color: #aaa;
 }
 
 /* Common input styles */
 
 .calcForm input[type="text"], .calcForm input[type="number"], .calcForm select, .calcForm .file-upload {
     background: var(--background-color);
-    outline: 1px solid var(--font-color);
+    outline: 1px solid currentColor;
     color: var(--font-color);
     border-radius: 1rem;
     padding: 0.25rem 0.75rem;
@@ -233,6 +237,11 @@ form.calcForm {
 
 .calcForm input[type="text"]:focus-visible, .calcForm input[type="number"]:focus-visible, .calcForm select:focus-visible, .calcForm .file-upload:focus-visible {
     outline: rgb(var(--active-color)) solid 2px;
+}
+
+.calcForm input:disabled, .calcForm select:disabled, .calcForm button:disabled, .calcForm .file-upload.disabled {
+    color: #aaa;
+    cursor: default;
 }
 
 /* Checkbox */
@@ -289,6 +298,20 @@ form.calcForm {
 .calcForm select{
     position: relative;
     border-right: 0.5rem solid transparent;
+    overflow: auto;
+}
+
+.calcForm select[multiple] {
+    border: 0;
+}
+
+.calcForm select[multiple] option {
+    padding: 0.25rem;
+    border-radius: 1rem;
+}
+
+.calcForm select[multiple] option:checked {
+    background-color: rgb(var(--active-color));
 }
 
 /* Files */
