@@ -46,18 +46,17 @@ def upload():
     # check options
     opt_def = json.loads(os.getenv('OPTIONS'))
     missing_req = [option['name'] not in request.form for option in opt_def if not option['optional']]
-    arrs = [[option for option in opt_def if not option['optional']][i]['type'] == 'array' for i, x in enumerate(missing_req) if x]
+    arrs = [x and [option for option in opt_def if not option['optional']][i]['type'] == 'array' for i, x in enumerate(missing_req)]
     for i, x in enumerate(arrs):
         if not x:
             continue
-        name = [option for option in opt_def if not option['optional']][i]['name']
         missing_req[i] = False
-        request.form.add(name, [])
+    arr_names = [[option for option in opt_def if not option['optional']][i]['name'] for i, x in enumerate(arrs)]
 
     if (any(missing_req)):
         return jsonify(success=False, error=f"Missing required input: '{[[option for option in opt_def if not option['optional']][i]['name'] for i, x in enumerate(missing_req) if x][0]}'")
 
-    for option in request.form:
+    for option in [*request.form, *arr_names]:
         if option not in [option['name'] for option in opt_def]:
             return jsonify(success=False, error=f"Unexpected input: '{option}'")
         
@@ -78,7 +77,7 @@ def upload():
                     return jsonify(success=False, error=f"Parameter '{option}' is of incorrect length.")
                 if opt['pattern'] is not None and not re.match(opt['pattern'], val):
                     return jsonify(success=False, error=f"Parameter '{option}' does not match required pattern.")
-                args.append(f'-{option}')
+                args.append(f'-""{option}')
                 args.append(val)
             # number
             case 'number':
@@ -104,20 +103,26 @@ def upload():
                 extra_opt = [v not in [poss['value'] for poss in opt['options']] for v in val]
                 if any(extra_opt):
                     return jsonify(success=False, error=f"Option '{[[v for v in val][i] for i, x in enumerate(extra_opt) if x][0]}' not a valid value for parameter '{option}'.")
-                args.append(f'-{option}')
-                args.append(', '.join(val))
+                if opt['multiselect']:
+                    args.append(f'-[""]{option}')
+                    args.append(', '.join(val))
+                else:
+                    args.append(f'-{option}')
+                    args.append(val[0])
             # array
             case 'array':
-                val = request.form.getlist(option)
+                val = request.form.getlist(option) or []
                 if isinstance(opt['length'], int) and len(val) != opt['length']:
                     return jsonify(success=False, error=f"Expected {opt['length']} values for parameter '{option}', received {len(val)}.")
                 if opt['items']['type'] == 'text':
+                    prefix = '-[""]'
                     for s in val:
                         if len(s) < opt['items']['minlength'] or (opt['items']['maxlength'] is not None and len(s) > opt['items']['maxlength']):
                             return jsonify(success=False, error=f"A value for parameter '{option}' is of incorrect length.")
                         if opt['items']['pattern'] is not None and not re.match(opt['items']['pattern'], s):
                             return jsonify(success=False, error=f"A value for parameter '{option}' does not match required pattern.")
                 elif opt['items']['type'] == 'number':
+                    prefix = '-[]'
                     for n in val:
                         try:
                             float(n)
@@ -131,7 +136,7 @@ def upload():
                             except ValueError:
                                 return jsonify(success=False, error=f"A value for parameter '{option}' should be an integer.")
 
-                args.append(f'-{option}')
+                args.append(f'{prefix}{option}')
                 args.append(', '.join(val))
     if len(filepaths) == 0:
         id = 'noid'

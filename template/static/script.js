@@ -200,14 +200,15 @@ const popTab = (data, tab) => {
 
 const copyEl = (el, numCopies) => {
     if (numCopies == '') return;
+    const name = $(el).children('input').attr('name');
     if (numCopies == 0) {
         $(el).parent().parent().css('display', 'none');
+        $(el).val('');
         $(`.array-input-${name}:not([data-depends-on])`).remove();
         return;
     }
     $(el).parent().parent().css('display', 'initial');
     numCopies = +numCopies;
-    const name = $(el).children('input').attr('name');
     // destroys all other copies
     $(`.array-input-${name}:not([data-depends-on])`).remove();
     for (let i = 1; i < numCopies; i++) {
@@ -326,6 +327,7 @@ $(() => {
     $(document).on('submit', '.calcForm', async function (e) {
         e.preventDefault();
         if ($(this).find('.required').is((i, el) => {
+            if (!el.offsetParent) return false;
             return !$(el).val() || $(el).val() == "";
         })) return;
         const data = new FormData(this);

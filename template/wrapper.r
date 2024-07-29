@@ -12,17 +12,32 @@ parse_args <- function(args) {
       # true
       short_word <- substring(word, 3)
       val <- FALSE
+    } else if (startsWith(word, '-""')) {
+      # string
+      i <- i + 1
+      short_word <- substring(word, 4)
+      val <- args[i]
+    } else if (startsWith(word, '-[""]')) {
+      # string array
+      i <- i + 1
+      short_word <- substring(word, 6)
+      if (args[i] == "") val <- vector()
+      else val <- strsplit(args[i], ", ")
+    } else if (startsWith(word, "-[]")) {
+      # number array
+      i <- i + 1
+      short_word <- substring(word, 4)
+      if (args[i] == "") {
+        val <- vector()
+      } else {
+        val <- strsplit(args[i], ", ")
+        val <- as.numeric(val[[1]])
+      }
     } else if (startsWith(word, "-")) {
+      # number
       i <- i + 1
       short_word <- substring(word, 2)
-      val <- strsplit(args[i], ", ")
-      temp <- as.numeric(val[[1]])
-      if (!any(is.nan(temp))) {
-        val <- temp
-      }
-      if (length(val) == 1) {
-        val <- val [[1]][1]
-      }
+      val <- as.numeric(args[i])
     }
     obj[[short_word]] <- val
     i <- i + 1
@@ -54,6 +69,7 @@ load_file <- function(file, args_obj) {
 convert_list <- function(val) {
   val_str <- ""
   i <- 0
+  if (length(val) == 0) val_str <- "''"
   if (is.list(val)) {
     for (name in names(val)) {
       if (i == 0) val_str <- paste0("'", name, "': ", convert_list(val[[name]]))

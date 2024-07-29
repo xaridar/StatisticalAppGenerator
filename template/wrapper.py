@@ -16,15 +16,28 @@ def convert_to_obj(args):
         elif word.startswith('-!'):
             # false
             obj[word[2:]] = False
-        else:
+        elif word.startswith('-""'):
+            # string
             i += 1
-            obj[word[1:]] = args[i].split(', ')
-            try:
-                obj[word[1:]] = [float(elem) for elem in obj[word[1:]]]
-            except ValueError:
-                pass
-            if len(obj[word[1:]]) == 1:
-                obj[word[1:]] = obj[word[1:]][0]
+            obj[word[3:]] = args[i]
+        elif word.startswith('-[""]'):
+            # string array
+            i += 1
+            if (args[i] == ''):
+                obj[word[5:]] = []
+            else:
+                obj[word[5:]] = args[i].split(', ')
+        elif word.startswith('-[]'):
+            # number array
+            i += 1
+            obj[word[3:]] = [float(elem) for elem in args[i].split(', ')]
+        else:
+            # number
+            i += 1
+            if (args[i] == ''):
+                obj[word[1:]] = []
+            else:
+                obj[word[1:]] = float(args[i])
         i += 1
     return obj
 
