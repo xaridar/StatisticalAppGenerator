@@ -23,7 +23,6 @@ const changeTab = (tabNum) => {
     /* scroll to tab */
     const diff = (newHandle.offset().left + newHandle.outerWidth()) - ($('#tabHandles').offset().left + $('#tabHandles').outerWidth());
     if (diff <= 10) return;
-    console.log(diff);
     let sum = 0;
     let i = 0;
     while (sum < diff && firstTab < tabs - 1) {
@@ -80,7 +79,7 @@ const popTab = (data, tab) => {
                 const labelsSet = new Set(element.labels);
                 const values = element.labels.map(((label, i) => ({x: label, y: element.values[i]})));
                 const dataset = {
-                    label: obj.description,
+                    label: descriptions[key],
                     data: values,
                     type: obj.type
                 }
@@ -157,7 +156,7 @@ const popTab = (data, tab) => {
             }
             case 'table': {
                 const h2 = document.createElement('h2');
-                h2.textContent = key;
+                h2.textContent = descriptions[key];
                 div.appendChild(h2);
                 const table = $(document.createElement('table'));
 
@@ -186,7 +185,7 @@ const popTab = (data, tab) => {
             }
             case 'text': {
                 const h2 = document.createElement('h2');
-                h2.textContent = key;
+                h2.textContent = descriptions[key];
                 div.appendChild(h2);
                 const pre = $(document.createElement('pre'));
                 pre.text(element.text);
@@ -201,9 +200,9 @@ const popTab = (data, tab) => {
 const copyEl = (el, numCopies) => {
     if (numCopies == '') return;
     const name = $(el).children('input').attr('name');
+    $(el).children('input').val('');
     if (numCopies == 0) {
         $(el).parent().parent().css('display', 'none');
-        $(el).val('');
         $(`.array-input-${name}:not([data-depends-on])`).remove();
         return;
     }
@@ -229,11 +228,16 @@ $(() => {
     let chart;
 
     $(document).on('change', '.file', function() {
+        
+        const error = $(this).parent().parent().find('.error');
+        error.removeClass('show');
 
         // check file
         const file = $(this).prop('files')[0];
         if (file == undefined || file.name == '' || file.type != 'text/csv') {
             // bad file
+            error.text('Only .csv files are supported.');
+            error.addClass('show');
             $(this).val('');
             if (chart) chart.destroy();
             $(`label[for="${$(this).prop('id')}"] p.filename`).text('');
@@ -249,6 +253,8 @@ $(() => {
             const values = converted.map(arr => arr[this.dataset.yLabel]);
             if (labels[0] === undefined || values[0] === undefined) {
                 // bad file
+                error.text(`Input file does not have required x and y columns: '${this.dataset.xLabel}', '${this.dataset.yLabel}'.`);
+                error.addClass('show');
                 $(this).val('');
                 if (chart) chart.destroy();
                 $(`label[for="${$(this).prop('id')}"] p.filename`).text('');
@@ -329,7 +335,12 @@ $(() => {
         if ($(this).find('.required').is((i, el) => {
             if (!el.offsetParent) return false;
             return !$(el).val() || $(el).val() == "";
-        })) return;
+        })) {
+            $('#error').text('Please fill all required fields.')
+            $('#error').addClass('show');
+            return;
+        }
+        $('#error').removeClass('show');
         const data = new FormData(this);
         for (const e of data.entries()) {
             if (e[1] == '') data.delete(e[0]);
@@ -346,7 +357,6 @@ $(() => {
                 contentType: false,
                 processData: false,
             });
-            console.log(res);
             if (res.success) {
                 maxTab++;
                 const newTab = $(document.createElement('div'));
@@ -372,6 +382,8 @@ $(() => {
                 tabs++;
                 changeTab(tabs-1);
             }
+            $('#error').text(res.error)
+            $('#error').addClass('show');
         } catch (e) {
             console.error(e);
         }
@@ -380,7 +392,6 @@ $(() => {
     });
 
     $(document).on('click', '.tab-handle', function(e) {
-        console.log($(e.target).index())
         changeTab($(e.target).index());
     });
 
@@ -406,7 +417,6 @@ $(() => {
         if (!afterElement) {
             $('#tabHandles').append(el);
         } else {
-            console.log(afterElement);
             $('#tabHandles')[0].insertBefore(el, afterElement);
         }
     });
@@ -476,4 +486,6 @@ $(() => {
             copyEl(el, $(this).val());
         });
     })
+
+    $('[data-depends-on]').parent().parent().css('display', 'none');
 });

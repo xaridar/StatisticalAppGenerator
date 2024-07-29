@@ -61,6 +61,16 @@ label:has(+ div>.required) > span:not(.file-upload)::after, label:has(+ .require
     color: red;
 }
 
+#requiredHeader {
+    text-align: center;
+    display: block;
+}
+
+#requiredHeader::before {
+    content: '*';
+    color: red;
+}
+
 .filechart {
     display: none
 }
@@ -200,6 +210,7 @@ label:has(+ div>.required) > span:not(.file-upload)::after, label:has(+ .require
 form.calcForm {
     display: flex;
     flex-direction: column;
+    margin-top: 1.5rem;
 }
 
 .calcForm button[type="submit"] {
@@ -223,6 +234,18 @@ form.calcForm {
 
 .calcForm button[type="submit"]:disabled {
     border-color: #aaa;
+}
+
+.error {
+    color: red;
+    text-align: center;
+    margin-top: -1rem;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+.error.show {
+    display: block;
 }
 
 /* Common input styles */
@@ -342,6 +365,7 @@ form.calcForm {
 
 .calcForm .file-upload + .filename {
     font-size: 0.9em;
+    opacity: 0.8;
 }
 
 .file-ctr div>label {

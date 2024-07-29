@@ -14,11 +14,15 @@
 </div>
 <div id="tabs">
     <div class="tab active" data-tab="0">
+        <small id="requiredHeader">
+            Required Field
+        </small>
         <form action="/" class="calcForm" method="post">
             <button type="submit">
                 Submit
             </button>
         </form>
+        <p id="error" class="error"></p>
     </div>
 </div>
 {% endblock %}

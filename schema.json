@@ -190,6 +190,133 @@
             },
             "default": []
         },
+        "output": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "function_name": {
+                    "type": "string",
+                    "default": "calc"
+                },
+                "format": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "anyOf": [
+                            {
+                                "additionalProperties": false,
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                    },
+                                    "description": {"type": "string"},
+                                    "type": {"const": "graph"},
+                                    "x_axis": {
+                                        "type": "string",
+                                        "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
+                                    },
+                                    "y_axis": {
+                                        "type": "string",
+                                        "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
+                                    },
+                                    "plot_type": {
+                                        "type": "string",
+                                        "enum": ["scatter", "line"],
+                                        "default": "scatter"
+                                    },
+                                    "parent_name": {
+                                        "type": "string",
+                                        "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$",
+                                        "default": null
+                                    }
+                                },
+                                "required": ["name", "description", "type", "x_axis", "y_axis"]
+                            },
+                            {
+                                "additionalProperties": false,
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                    },
+                                    "description": {"type": "string"},
+                                    "type": {"const": "table"},
+                                    "precision": {
+                                        "oneOf": [
+                                            {
+                                                "type": "integer",
+                                                "minimum": 0,
+                                                "maximum": 6
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 6
+                                                }
+                                            },
+                                            {
+                                                "const": "any"
+                                            }
+                                        ],
+                                        "default": "any"
+                                    }
+                                },
+                                "required": ["name", "description", "type"]
+                            },
+                            {
+                                "additionalProperties": false,
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                    },
+                                    "description": {"type": "string"},
+                                    "type": {"const": "data_table"},
+                                    "precision": {
+                                        "oneOf": [
+                                            {
+                                                "type": "integer",
+                                                "minimum": 0,
+                                                "maximum": 6
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 6
+                                                }
+                                            },
+                                            {
+                                                "const": "any"
+                                            }
+                                        ],
+                                        "default": "any"
+                                    }
+                                },
+                                "required": ["name", "description", "type"]
+                            },
+                            {
+                                "additionalProperties": false,
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                    },
+                                    "description": {"type": "string"},
+                                    "type": {"const": "text"}
+                                },
+                                "required": ["name", "description", "type"]
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": ["format"]
+        },
         "settings": {
             "type": "object",
             "additionalProperties": false,
@@ -199,133 +326,6 @@
                     "type": "string",
                     "enum": ["light", "dark", "red", "blue", "green"],
                     "default": "light"
-                },
-                "output": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                        "function_name": {
-                            "type": "string",
-                            "default": "calc"
-                        },
-                        "format": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "anyOf": [
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
-                                            },
-                                            "description": {"type": "string"},
-                                            "type": {"const": "graph"},
-                                            "x_axis": {
-                                                "type": "string",
-                                                "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
-                                            },
-                                            "y_axis": {
-                                                "type": "string",
-                                                "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
-                                            },
-                                            "plot_type": {
-                                                "type": "string",
-                                                "enum": ["scatter", "line"],
-                                                "default": "scatter"
-                                            },
-                                            "parent_name": {
-                                                "type": "string",
-                                                "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$",
-                                                "default": null
-                                            }
-                                        },
-                                        "required": ["name", "description", "type", "x_axis", "y_axis"]
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
-                                            },
-                                            "description": {"type": "string"},
-                                            "type": {"const": "table"},
-                                            "precision": {
-                                                "oneOf": [
-                                                    {
-                                                        "type": "integer",
-                                                        "minimum": 0,
-                                                        "maximum": 6
-                                                    },
-                                                    {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer",
-                                                            "minimum": 0,
-                                                            "maximum": 6
-                                                        }
-                                                    },
-                                                    {
-                                                        "const": "any"
-                                                    }
-                                                ],
-                                                "default": "any"
-                                            }
-                                        },
-                                        "required": ["name", "description", "type"]
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
-                                            },
-                                            "description": {"type": "string"},
-                                            "type": {"const": "data_table"},
-                                            "precision": {
-                                                "oneOf": [
-                                                    {
-                                                        "type": "integer",
-                                                        "minimum": 0,
-                                                        "maximum": 6
-                                                    },
-                                                    {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer",
-                                                            "minimum": 0,
-                                                            "maximum": 6
-                                                        }
-                                                    },
-                                                    {
-                                                        "const": "any"
-                                                    }
-                                                ],
-                                                "default": "any"
-                                            }
-                                        },
-                                        "required": ["name", "description", "type"]
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
-                                            },
-                                            "description": {"type": "string"},
-                                            "type": {"const": "text"}
-                                        },
-                                        "required": ["name", "description", "type"]
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "required": ["format"]
                 },
                 "input_file": {
                     "type": "object",
@@ -371,8 +371,8 @@
                     }
                 }
             },
-            "required": ["output", "title"]
+            "required": ["title"]
         }
     },
-    "required": ["settings"]
+    "required": ["options", "output"]
 }
