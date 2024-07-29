@@ -82,6 +82,7 @@ def createInput(html, options):
         case 'text' | 'number' | 'checkbox':
             input = html.new_tag('input')
             input['type'] = options['type']
+            small_string = f'{options["type"]} input'
             input['id'] = f'{options['name']}_inp'
             input['name'] = options['name']
             if not options['optional']:
@@ -89,24 +90,35 @@ def createInput(html, options):
             if options['type'] == 'text':
                 if options['minlength'] > 0:
                     input['minlength'] = options['minlength']
+                    if options['maxength'] is None:
+                        small_string += f', minimum {options["minlength"]} characters'
                 if options['maxlength'] is not None:
                     input['maxlength'] = options['maxlength']
+                    small_string += f', {options["minlength"]} - {options["maxlength"]} characters'
+                if options['pattern'] is not None:
+                    input['pattern'] = options['pattern']
+                    small_string += f'<br>pattern: {options["pattern"]}'
             if options['type'] == 'number':
                 input['step'] = 'any'
-                if options['min'] is not None:
-                    input['min'] = options['min']
-                if options['max'] is not None:
-                    input['max'] = options['max']
                 if options['integer']:
                     input['step'] = '1'
+                    small_string = 'integer input'
+                if options['min'] is not None:
+                    input['min'] = options['min']
+                    small_string += f', min: {options["min"]}'
+                if options['max'] is not None:
+                    input['max'] = options['max']
+                    small_string += f', max: {options["max"]}'
         case 'select':
             input = html.new_tag('select')
             input['id'] = f'{options['name']}_inp'
             input['name'] = options['name']
             if not options['optional']:
                 input['class'] = 'required'
+            small_string = 'Select one dropdown option'
             if options['multiselect']:
                 input['multiple'] = ''
+                small_string = 'Ctrl + click or drag to select multiple'
             def_el = html.new_tag('option')
             def_el['disabled'] = ''
             def_el['value'] = ''
@@ -118,45 +130,66 @@ def createInput(html, options):
                 input.append(option_el)
         case 'array':
             input = html.new_tag('div')
-
+            small_string = None
+            ctr = html.new_tag('div')
             inp = html.new_tag('input')
             inp['type'] = options['items']['type']
             inp['id'] = f'{options['name']}_'
+            inner_small_string = f'{options["type"]} input'
             inp['name'] = options['name']
             if not options['optional']:
                 inp['class'] = 'required'
             if options['items']['type'] == 'text':
                 if options['items']['minlength'] > 0:
                     inp['minlength'] = options['items']['minlength']
+                    if options['items']['maxength'] is None:
+                        inner_small_string += f', minimum {options["items"]["minlength"]} characters'
                 if options['items']['maxlength'] is not None:
                     inp['maxlength'] = options['items']['maxlength']
+                    inner_small_string += f', {options["items"]["minlength"]} - {options["items"]["maxlength"]} characters'
+                if options['items']['pattern'] is not None:
+                    inp['pattern'] = options['items']['pattern']
+                    inner_small_string += f'<br>pattern: {options["items"]["pattern"]}'
             if options['items']['type'] == 'number':
                 inp['step'] = 'any'
-                if options['items']['min'] is not None:
-                    inp['min'] = options['items']['min']
-                if options['items']['max'] is not None:
-                    inp['max'] = options['items']['max']
                 if options['items']['integer']:
                     inp['step'] = '1'
+                    inner_small_string = 'integer input'
+                if options['items']['min'] is not None:
+                    inp['min'] = options['items']['min']
+                    inner_small_string += f', min: {options["items"]["min"]}'
+                if options['items']['max'] is not None:
+                    inp['max'] = options['items']['max']
+                    inner_small_string += f', min: {options["items"]["min"]}'
             sublabel = html.new_tag('label')
             sublabel['for'] = f'{options["name"]}_'
             span = html.new_tag('span')
             span.string = 'Element '
             sublabel.append(span)
+            sublabel.append(html.new_tag('br'))
+
+            small = html.new_tag('small')
+            small.string = inner_small_string
+
+            sublabel.append(small)
             
             if isinstance(options['length'], int):
                 num_inps = options['length']
             else:
                 num_inps = 1
+                ctr['data-depends-on'] = options['length'][1:]
+
+            ctr['class'] = f'array-input-{options["name"]}'
+
+            ctr.append(sublabel)
+            ctr.append(inp)
             
             for idx in range(num_inps):
-                it_inp = copy.copy(inp)
-                it_label = copy.copy(sublabel)
-                it_inp['id'] += str(idx)
-                it_label['for'] += str(idx)
-                it_label.findChildren('span')[0].string += str(idx)
-                input.append(it_label)
-                input.append(it_inp)
+                it_ctr = copy.copy(ctr)
+                it_ctr.find('input')['id'] += str(idx)
+                it_ctr.find('label')['for'] += str(idx)
+                it_ctr.find('label').find('span').string += str(idx)
+                input.append(it_ctr)
 
             input['id'] = f'{options['name']}_inp'
             input['class'] = 'option_array'
@@ -169,6 +202,12 @@ def createInput(html, options):
         span = html.new_tag('span')
         span.string = escape(options['description'])
         label.append(span)
+        label.append(html.new_tag('br'))
+
+        if small_string is not None:
+            small = html.new_tag('small')
+            small.string = small_string
+            label.append(small)
         div.append(label)
     if options['type'] == 'checkbox':
         hidden = html.new_tag('input')
@@ -241,7 +280,7 @@ if __name__ == '__main__':
 
     with alive_bar(unknown='brackets', spinner='classic', calibrate=40) as bar:
         bar.text('Reading config schema...')
-        with open('./schema.json') as jsonschema:
+        with open(os.path.join(sys._MEIPASS, './schema.json') if getattr(sys, 'frozen', False) else './schema.json') as jsonschema:
             config_schema = json.load(jsonschema)
         bar()
 
@@ -255,14 +294,20 @@ if __name__ == '__main__':
         bar()
 
         # checks for repeat inputs/outputs
-        unique, cts = np.unique([option['name'] for option in [*cf['options'], *cf['settings']['input_file']['files']]], return_counts=True)
-        if len(unique[cts > 1]) > 0:
+        inp_unique, cts = np.unique([option['name'] for option in [*cf['options'], *cf['settings']['input_file']['files']]], return_counts=True)
+        if len(inp_unique[cts > 1]) > 0:
             raise Exception('Repeated option/file names not allowed!')
         
-        unique, cts = np.unique([option['name'] for option in cf['settings']['output']['format']], return_counts=True)
-        if len(unique[cts > 1]) > 0:
+        outp_unique, cts = np.unique([option['name'] for option in cf['settings']['output']['format']], return_counts=True)
+        if len(outp_unique[cts > 1]) > 0:
             raise Exception('Repeated output names not allowed!')
         bar()
+
+        # checks array variable names against inputs
+        varnames = [option['length'] for option in cf['options'] if option['type'] == 'array' and isinstance(option['length'], str)]
+        for varname in varnames:
+            if varname[1:] not in inp_unique or varname in [option['name'] for option in cf['settings']['input_file']['files']]:
+                raise Exception('Please check validity of all variable array length reference names!')
 
         # creates generated .env file
         env_vars = {

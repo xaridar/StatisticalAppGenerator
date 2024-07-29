@@ -184,6 +184,11 @@ label:has(+ div>.required) > span:not(.file-upload)::after, label:has(+ .require
     justify-content: center;
 }
 
+.option {
+    width: 75%;
+    margin: auto;
+}
+
 .file-ctr label, .option label {
     text-align: center;
     margin: auto;
@@ -194,9 +199,7 @@ label:has(+ div>.required) > span:not(.file-upload)::after, label:has(+ .require
 
 form.calcForm {
     display: flex;
-    width: 60%;
     flex-direction: column;
-    margin: auto;
 }
 
 .calcForm button[type="submit"] {
@@ -312,6 +315,20 @@ form.calcForm {
 
 .calcForm select[multiple] option:checked {
     background-color: rgb(var(--active-color));
+}
+
+/* Arrays */
+.option_array {
+    font-size: 0.85rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.option_array > div {
+    width: 8rem;
+    margin: 0.15rem;
 }
 
 /* Files */

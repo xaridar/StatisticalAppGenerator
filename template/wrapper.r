@@ -15,13 +15,13 @@ parse_args <- function(args) {
     } else if (startsWith(word, "-")) {
       i <- i + 1
       short_word <- substring(word, 2)
-      num <- as.numeric(args[i])
-      if (!is.na(num)) {
-        # number
-        val <- num
-      } else {
-        # string
-        val <- strsplit(args[i], ", ")
+      val <- strsplit(args[i], ", ")
+      temp <- as.numeric(val[[1]])
+      if (!any(is.nan(temp))) {
+        val <- temp
+      }
+      if (length(val) == 1) {
+        val <- val [[1]][1]
       }
     }
     obj[[short_word]] <- val
@@ -72,14 +72,19 @@ convert_list <- function(val) {
       }
       i <- i + 1
     }
-  if (length(val) > 1) val_str <- paste0("[", val_str, "]")
+    if (length(val) > 1 || startsWith(val_str, "[")) val_str <- paste0("[", val_str, "]")
   } else if (is.numeric(val)) {
     for (v in val) {
-      if (i == 0) val_str <- v
-      else val_str <- sprintf("%s, %s", val_str, v)
+      if (v == Inf) v <- "'Infinity'"
+      if (v == -Inf) v <- "'-Infinity'"
+      if (i == 0) {
+        val_str <- v
+      } else {
+        val_str <- sprintf("%s, %s", val_str, v)
+      }
       i <- i + 1
     }
-  if (length(val) > 1) val_str <- paste0("[", val_str, "]")
+    if (length(val) > 1) val_str <- paste0("[", val_str, "]")
   } else if (is.logical(val)) {
     for (v in val) {
       if (i == 0) val_str <- if (v == TRUE) "True" else "False"
@@ -161,12 +166,16 @@ for (name in names(out_obj)) {
         if (is.character(ele)) {
           first_elem <- ele
         } else {
-          first_elem <- formatC(ele, format = "f", digits = precision[1])
+          if (ele == Inf) first_elem <- "Infinity"
+          else if (ele == -Inf) first_elem <- "-Infinity"
+          else first_elem <- formatC(ele, format = "f", digits = precision[1])
         }
         if (is.character(value[ele][[1]])) {
           second_elem <- value[ele][[1]]
         } else {
-          second_elem <- formatC(value[ele][[1]], format = "f", digits = precision[2])
+          if (value[ele][[1]] == Inf) second_elem <- "Infinity"
+          else if (value[ele][[1]] == -Inf) second_elem <- "-Infinity"
+          else second_elem <- formatC(value[ele][[1]], format = "f", digits = precision[2])
         }
         data <- c(data, convert_list(c(first_elem, second_elem)))
       }
@@ -204,7 +213,9 @@ for (name in names(out_obj)) {
           if (is.character(ele)) {
             new_row <- c(new_row, ele)
           } else {
-            new_row <- c(new_row, formatC(ele, format = "f", digits = precision[i]))
+            if (ele == Inf) new_row <- c(new_row, "Infinity")
+            else if (ele == -Inf) new_row <- c(new_row, "-Infinity")
+            else new_row <- c(new_row, formatC(ele, format = "f", digits = precision[i]))
           }
           i <- i + 1
         }

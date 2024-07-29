@@ -8,7 +8,7 @@ lod_calc <- function(n, cv, beta, k) {
   ((d / beta ^ (1 / (n * d))) - d) / k
 }
 
-calc <- function(cv, beta, k, threshold) {
+calc <- function(cv, beta, k, threshold, arr) {
   lod <- data.frame(n = seq(from = 1, to = 1000, by = 1))
   lod <- mutate(lod, LOD = sapply(lod$n, lod_calc, cv = cv, beta = beta, k = k))
   lod <- mutate(lod, LOD2 = sapply(lod$n, lod_calc, cv = 0, beta = beta, k = k))

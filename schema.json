@@ -147,6 +147,10 @@
                                         "maxlength": {
                                             "type": "number",
                                             "default": null
+                                        },
+                                        "pattern": {
+                                            "type": "string",
+                                            "default": null
                                         }
                                     },
                                     "required": ["type"]
@@ -262,6 +266,9 @@
                                                             "minimum": 0,
                                                             "maximum": 6
                                                         }
+                                                    },
+                                                    {
+                                                        "const": "any"
                                                     }
                                                 ],
                                                 "default": "any"

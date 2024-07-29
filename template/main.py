@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 import json
 import os
 import subprocess
-import ast
+import re
+import math
 
 load_dotenv('.env')
 
@@ -45,6 +46,14 @@ def upload():
     # check options
     opt_def = json.loads(os.getenv('OPTIONS'))
     missing_req = [option['name'] not in request.form for option in opt_def if not option['optional']]
+    arrs = [[option for option in opt_def if not option['optional']][i]['type'] == 'array' for i, x in enumerate(missing_req) if x]
+    for i, x in enumerate(arrs):
+        if not x:
+            continue
+        name = [option for option in opt_def if not option['optional']][i]['name']
+        missing_req[i] = False
+        request.form.add(name, [])
+
     if (any(missing_req)):
         return jsonify(success=False, error=f"Missing required input: '{[[option for option in opt_def if not option['optional']][i]['name'] for i, x in enumerate(missing_req) if x][0]}'")
 
@@ -65,21 +74,26 @@ def upload():
             # text
             case 'text':
                 val = request.form.get(option)
-                if not isinstance(val, str):
-                    return jsonify(success=False, error=f"Expected string value for parameter '{option}'.")
                 if len(val) < opt['minlength'] or (opt['maxlength'] is not None and len(val) > opt['maxlength']):
                     return jsonify(success=False, error=f"Parameter '{option}' is of incorrect length.")
+                if opt['pattern'] is not None and not re.match(opt['pattern'], val):
+                    return jsonify(success=False, error=f"Parameter '{option}' does not match required pattern.")
                 args.append(f'-{option}')
                 args.append(val)
             # number
             case 'number':
                 val = request.form.get(option)
-                if not isinstance(val, float) and not isinstance(val, int):
+                try:
+                    float(val)
+                except ValueError:
                     return jsonify(success=False, error=f"Expected number value for parameter '{option}'.")
-                if (opt['min'] is not None and val < opt['min']) or (opt['max'] and val > opt['max']):
+                if (opt['min'] is not None and float(val) < opt['min']) or (opt['max'] and float(val) > opt['max']):
                     return jsonify(success=False, error=f"Parameter '{option}' does not adhere to its defined minimum and maximum.")
-                if opt['integer'] and not isinstance(val, int):
-                    return jsonify(success=False, error=f"Parameter '{option}' should be an integer.")
+                if opt['integer']:
+                    try:
+                        int(val)
+                    except ValueError:
+                        return jsonify(success=False, error=f"Parameter '{option}' should be an integer.")
                 args.append(f'-{option}')
                 args.append(val)
             # select
@@ -99,18 +113,23 @@ def upload():
                     return jsonify(success=False, error=f"Expected {opt['length']} values for parameter '{option}', received {len(val)}.")
                 if opt['items']['type'] == 'text':
                     for s in val:
-                        if not isinstance(s, str):
-                            return jsonify(success=False, error=f"Expected all string values for parameter '{option}'.")
-                        if len(s) < opt['minlength'] or (opt['maxlength'] is not None and len(s) > opt['maxlength']):
+                        if len(s) < opt['items']['minlength'] or (opt['items']['maxlength'] is not None and len(s) > opt['items']['maxlength']):
                             return jsonify(success=False, error=f"A value for parameter '{option}' is of incorrect length.")
+                        if opt['items']['pattern'] is not None and not re.match(opt['items']['pattern'], s):
+                            return jsonify(success=False, error=f"A value for parameter '{option}' does not match required pattern.")
                 elif opt['items']['type'] == 'number':
                     for n in val:
-                        if not isinstance(n, int) and not isinstance(n, float):
+                        try:
+                            float(n)
+                        except ValueError:
                             return jsonify(success=False, error=f"Expected all number values for parameter '{option}'.")
-                    if (opt['min'] is not None and n < opt['min']) or (opt['max'] and n > opt['max']):
-                        return jsonify(success=False, error=f"A value for parameter '{option}' does not adhere to its defined minimum and maximum.")
-                    if opt['integer'] and not isinstance(n, int):
-                        return jsonify(success=False, error=f"A value for parameter '{option}' should be an integer.")
+                        if (opt['items']['min'] is not None and n < opt['items']['min']) or (opt['items']['max'] and n > opt['items']['max']):
+                            return jsonify(success=False, error=f"A value for parameter '{option}' does not adhere to its defined minimum and maximum.")
+                        if opt['items']['integer']:
+                            try:
+                                int(val)
+                            except ValueError:
+                                return jsonify(success=False, error=f"A value for parameter '{option}' should be an integer.")
 
                 args.append(f'-{option}')
                 args.append(', '.join(val))
@@ -130,7 +149,6 @@ def upload():
         return jsonify(success=False, error='Server error; please try again later.')
         
     return jsonify(success=True, data=json_out)
-    return jsonify(success=False)
 
 if __name__ == '__main__':
     app.run()

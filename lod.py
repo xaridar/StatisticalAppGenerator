@@ -7,7 +7,8 @@ def lod_calc(n, cv, beta, k):
     d = 1 / np.pow(cv,2)
     return ((d / np.pow(beta, 1 / (n * d))) - d) / k
 
-def calc(cv, beta, k, threshold):
+def calc(cv, beta, k, threshold, arr):
+    print(k)
     lod = pd.DataFrame(np.linspace(1, 1000, num=1000), columns=['n'])
     lod['LOD'] = lod.n.apply(lod_calc, args=[cv, beta, k])
     lod['LOD2'] = lod.n.apply(lod_calc, args=[0, beta, k])

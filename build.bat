@@ -1,1 +1,1 @@
-pyinstaller generate_app.py --add-data ./template:./template -F --clean
+pyinstaller generate_app.py --add-data ./template:./template --add-data schema.json:. --collect-data grapheme -F --clean

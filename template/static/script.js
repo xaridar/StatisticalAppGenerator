@@ -104,6 +104,21 @@ const popTab = (data, tab) => {
                             datasets: [dataset]
                         },
                         options: {
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: () => {
+                                            return null;
+                                        },
+                                        title: (context) => {
+                                            return `${context[0].chart.options.scales.x.title.text}: ${context[0].label}`;
+                                        },
+                                        beforeBody: (context) => {
+                                            return context.flatMap(ctx => ([`${ctx.dataset.label}:`, `  ${ctx.chart.options.scales.y.title.text} = ${ctx.formattedValue}`]));
+                                        }
+                                    }
+                                }
+                            },
                             scales: {
                                 x: {
                                     title: {
@@ -180,6 +195,29 @@ const popTab = (data, tab) => {
             }
         }
         tab.append(div);
+    }
+}
+
+const copyEl = (el, numCopies) => {
+    if (numCopies == '') return;
+    if (numCopies == 0) {
+        $(el).parent().parent().css('display', 'none');
+        $(`.array-input-${name}:not([data-depends-on])`).remove();
+        return;
+    }
+    $(el).parent().parent().css('display', 'initial');
+    numCopies = +numCopies;
+    const name = $(el).children('input').attr('name');
+    // destroys all other copies
+    $(`.array-input-${name}:not([data-depends-on])`).remove();
+    for (let i = 1; i < numCopies; i++) {
+        const copy = $(el).clone();
+        copy.find('label').each((_, e) => $(e).attr('for', name + '_' + i));
+        copy.find('label span').each((_, e) => $(e).text('Element ' + i));
+        copy.find('input').each((_, e) => $(e).attr('id', name + '_' + i));
+        copy.removeAttr('data-depends-on');
+        copy.children('input').val('');
+        $(el).parent().append(copy[0]);
     }
 }
 
@@ -299,40 +337,44 @@ $(() => {
         const method = $(this).attr('method');
         const action = $(this).attr('action');
         
-        const res = await $.ajax(action, {
-            method,
-            data,
-            contentType: false,
-            processData: false,
-        });
+        try {
+            const res = await $.ajax(action, {
+                method,
+                data,
+                contentType: false,
+                processData: false,
+            });
+            console.log(res);
+            if (res.success) {
+                maxTab++;
+                const newTab = $(document.createElement('div'));
+                newTab.addClass('tab');
+                newTab.attr('data-tab', tabs);
+                h1 = $(document.createElement('h1'));
+                h1.text($('.tab[data-tab="0"] h1').text());
+                newTab.append(h1[0]);
+                popTab(res.data, newTab);
+                $('#tabs').append(newTab[0]);
+                
+                const handle = $((document).createElement('span'));
+                handle.addClass('tab-handle');
+                handle.text(`Output ${maxTab}`);
+                handle.attr('draggable', 'true');
+                handle.attr('data-tab', tabs);
+                const close = $((document).createElement('i'));
+                close.addClass('material-icons close');
+                close.text('close');
+                handle.append(close[0]);
+                $('#tabHandles').append(handle[0]);
+
+                tabs++;
+                changeTab(tabs-1);
+            }
+        } catch (e) {
+            console.error(e);
+        }
         $(this).find('input, button, select').prop('disabled', false);
         $(this).find('.file-upload').toggleClass('disabled', false);
-        console.log(res);
-        if (res.success) {
-            maxTab++;
-            const newTab = $(document.createElement('div'));
-            newTab.addClass('tab');
-            newTab.attr('data-tab', tabs);
-            h1 = $(document.createElement('h1'));
-            h1.text($('.tab[data-tab="0"] h1').text());
-            newTab.append(h1[0]);
-            popTab(res.data, newTab);
-            $('#tabs').append(newTab[0]);
-            
-            const handle = $((document).createElement('span'));
-            handle.addClass('tab-handle');
-            handle.text(`Output ${maxTab}`);
-            handle.attr('draggable', 'true');
-            handle.attr('data-tab', tabs);
-            const close = $((document).createElement('i'));
-            close.addClass('material-icons close');
-            close.text('close');
-            handle.append(close[0]);
-            $('#tabHandles').append(handle[0]);
-
-            tabs++;
-            changeTab(tabs-1);
-        }
     });
 
     $(document).on('click', '.tab-handle', function(e) {
@@ -424,4 +466,12 @@ $(() => {
         if (firstTab < tabs - 1) firstTab++;
         drawTabs();
     });
+
+    /* Dependent enumeration */
+    $(document).on('change', 'input[type="number"][step=1]', function () {
+        const depEls = $(`[data-depends-on="${$(this).attr('name')}"]`);
+        depEls.each((i, el) => {
+            copyEl(el, $(this).val());
+        });
+    })
 });
