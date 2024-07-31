@@ -23,7 +23,6 @@ calc <- function(cv, beta, k, threshold, arr) {
   }
   ret <- list()
   ret$Graph <- lod[lod$n <= 50, ]
-  ret$Graph1 <- lod[lod$n <= 50, ]
   ret$Table <- table
   ret$Table2 <- lod[lod$n <= 10, ]
   ret$Text <- "test"

@@ -124,7 +124,13 @@ suppressPackageStartupMessages(source(args[1]))
 options(warn = 0)
 func <- get(method_name)
 
-out_obj <- do.call(func, args_obj)
+out_obj <- tryCatch({
+  do.call(func, args_obj)
+}, error = function(e) {
+  spl <- strsplit(strsplit(as.character(e), ": ")[[1]][2], "")
+  cat(convert_list(list(error = paste(spl[[1]], sep = "", collapse = ""))))
+  quit()
+})
 
 # format output
 output_format <- list()
@@ -159,8 +165,26 @@ for (name in names(out_obj)) {
                 nchar(output_format[key]) - 1),
       "/"
     )[[1]][2]
+    if (!(x_var %in% names(value))) {
+      cat(convert_list(list(error = "X variable specified not found in dataframe.")))
+      quit()
+    }
     inner_list$labels <- value[x_var][[1]]
+    vals <- vector()
+    vars <- strsplit(y_var, "|")
+    if (y_var == "") {
+      vars <- colnames(value)
+      vars <- vars[!vars == x_var]
+    }
+    for (i in seq_along(vars)) {
+      if (!(vars[i] %in% names(value))) {
+        cat(convert_list(list(error = "Y variable specified not found in dataframe.")))
+        quit()
+      }
+      vals <- c(vals, convert_list(value[[vars[i]]]))
+    }
     inner_list$values <- value[y_var][[1]]
+    inner_list$columns <- vars
   } else if (arg_type == "table") {
     d <- list(columns = c("Param", "Value"))
     data <- vector()

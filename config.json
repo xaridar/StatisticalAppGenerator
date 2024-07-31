@@ -33,7 +33,7 @@
                 "type": "text",
                 "pattern": "^\\S+$"
             },
-            "length": "*threshold",
+            "length": "threshold",
             "name": "arr"
         }
     ],
@@ -44,17 +44,7 @@
                 "description": "Input CV",
                 "type": "graph",
                 "x_axis": "n",
-                "y_axis": "LOD",
-                "plot_type": "line"
-            },
-            {
-                "name": "Graph1",
-                "description": "CV = 0",
-                "type": "graph",
-                "x_axis": "n",
-                "y_axis": "LOD2",
-                "plot_type": "line",
-                "parent_name": "Graph"
+                "y_axis": "line"
             },
             {
                 "name": "Table",
@@ -77,9 +67,6 @@
     },
     "settings": {
         "title": "LOD Calculator",
-        "input_file": {
-            "enabled": false
-        },
         "themeColor": "light"
     }
 }

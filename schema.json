@@ -20,11 +20,17 @@
                             "default": false
                         },
                         "minlength": {
-                            "type": "number",
-                            "default": 0
+                            "type": "integer",
+                            "default": 0,
+                            "minimum": 0
                         },
                         "maxlength": {
-                            "type": "number",
+                            "type": "integer",
+                            "default": null,
+                            "minimum": 1
+                        },
+                        "pattern": {
+                            "type": "string",
                             "default": null
                         }
                     },
@@ -120,7 +126,7 @@
                             "oneOf": [
                                 {
                                     "type": "string",
-                                    "pattern": "^\\*(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
+                                    "pattern": "^(_[a-zA-Z]|[a-zA-Z])[_0-9a-zA-Z]*$"
                                 },
                                 {
                                     "type": "integer",
@@ -217,21 +223,35 @@
                                         "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
                                     },
                                     "y_axis": {
-                                        "type": "string",
-                                        "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
-                                    },
-                                    "plot_type": {
-                                        "type": "string",
-                                        "enum": ["scatter", "line"],
-                                        "default": "scatter"
-                                    },
-                                    "parent_name": {
-                                        "type": "string",
-                                        "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$",
-                                        "default": null
+                                        "oneOf": [
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                        "column_name": {
+                                                            "type": "string",
+                                                            "pattern": "^[_0-9a-zA-Z- ?!'{}()\\[\\]]+$"
+                                                        },
+                                                        "plot_type": {
+                                                            "type": "string",
+                                                            "enum": ["scatter", "line", "bar"],
+                                                            "default": "line"
+                                                        }
+                                                    },
+                                                    "required": ["column_name", "plot_type"]
+                                                },
+                                                "minItems": 1
+                                            }, {
+                                                "type": "string",
+                                                "enum": ["scatter", "line", "bar"]
+                                            }
+                                        ],
+                                        "default": "line"
                                     }
                                 },
-                                "required": ["name", "description", "type", "x_axis", "y_axis"]
+                                "required": ["name", "description", "type", "x_axis"]
                             },
                             {
                                 "additionalProperties": false,
@@ -331,10 +351,6 @@
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
-                        "enabled": {
-                            "type": "boolean",
-                            "default": true
-                        },
                         "graph_input": {
                             "type": "boolean",
                             "default": true
@@ -365,8 +381,7 @@
                                     }
                                 },
                                 "required": ["name"]
-                            },
-                            "default": [{"name": "file", "x_param": "x", "y_param": "y", "optional": false}]
+                            }
                         }
                     }
                 }

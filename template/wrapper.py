@@ -69,7 +69,10 @@ if id != 'noid':
 
 method = load_as_module(filename).__getattribute__(method_name)
 warnings.filterwarnings("ignore")
-out_obj = method(**as_obj)
+try:
+    out_obj = method(**as_obj)
+except Exception as e:
+    print({'error': e})
 warnings.filterwarnings("default")
 
 # format output
@@ -84,8 +87,21 @@ for key, value in out_obj.items():
     if arg_type == 'graph':
         x_var = output_format[key][6:-1].split('/')[0]
         y_var = output_format[key][6:-1].split('/')[1]
+        if x_var not in value:
+            print({'error': "X variable specified not found in dataframe."})
+            sys.exit(0)
         output[key]['labels'] = ['Infinity' if data == math.inf else '-Infinity' if data == -math.inf else data for data in list(value[x_var])]
-        output[key]['values'] = ['Infinity' if data == math.inf else '-Infinity' if data == -math.inf else data for data in list(value[y_var])]
+        vals = []
+        vars = y_var.split('|')
+        if y_var == '':
+            vars = [col for col in list(value.columns) if col != x_var]
+        for var in vars:
+            if var not in value:
+                print({'error': "Y variable specified not found in dataframe."})
+                sys.exit(0)
+            vals.append(['Infinity' if data == math.inf else '-Infinity' if data == -math.inf else data for data in list(value[var])])
+        output[key]['values'] = vals
+        output[key]['columns'] = vars
     elif arg_type == 'table':
         d = {'columns': ['Param', 'Value']}
         try:

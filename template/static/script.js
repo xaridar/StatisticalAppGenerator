@@ -68,90 +68,80 @@ const popTab = (data, tab) => {
         div.id = `output${key}`
         switch (element.type) {
             case 'graph': {
-                let graphName, obj;
-                for (const name in graphObj) {
-                    if (graphObj[name].map(el => el.name).includes(key)) {
-                        graphName = name;
-                        obj = graphObj[name].filter(el => el.name === key)[0];
-                    }
-                }
-                if (!graphName) return;
+                if (!Object.keys(graphObj).includes(key)) return;
                 const labelsSet = new Set(element.labels);
-                const values = element.labels.map(((label, i) => ({x: label, y: element.values[i]})));
-                const dataset = {
-                    label: descriptions[key],
-                    data: values,
-                    type: obj.type
+                const datasets = [];
+                for (let i = 0; i < element.columns.length; i++) {
+                    const values = element.labels.map(((label, n) => ({x: label, y: element.values[i][n]})));
+                    const dataset = {
+                        label: element.columns[i],
+                        data: values,
+                        type: Array.isArray(graphObj[key].y) ? graphObj[key].y[i] : graphObj[key].y
+                    };
+                    datasets.push(dataset);
                 }
-                if (graphs[maxTab] && Object.keys(graphs[maxTab]).includes(graphName)) {
-                    const graph = graphs[maxTab][graphName];
-                    graph.data.labels.forEach(labelsSet.add, labelsSet);
-                    graph.data.labels = [...labelsSet].sort((a, b) => a - b);
-                    graph.data.datasets.push(dataset);
-                    graph.update();
-                } else {
-                    labels = [...labelsSet].sort((a, b) => a - b);
-                    const canvas = document.createElement('canvas');
-                    $(canvas).addClass('output-graph');
-                    div.appendChild(canvas);
-                    
-                    // show chart
-                    const ctx = canvas.getContext('2d');
-                    const graph = new Chart(ctx, {
-                        data: {
-                            labels,
-                            datasets: [dataset]
+                const h2 = document.createElement('h2');
+                h2.textContent = key;
+                div.appendChild(h2);
+                labels = [...labelsSet].sort((a, b) => a - b);
+                const canvas = document.createElement('canvas');
+                $(canvas).addClass('output-graph');
+                div.appendChild(canvas);
+                
+                // show chart
+                const ctx = canvas.getContext('2d');
+                const graph = new Chart(ctx, {
+                    data: {
+                        labels,
+                        datasets
+                    },
+                    options: {
+                        plugins: {
+                            tooltip: {
+                                intersect: false,
+                                position: 'nearest',
+                                mode: 'index',
+                                callbacks: {
+                                    label: () => {
+                                        return null;
+                                    },
+                                    title: (context) => {
+                                        return `${context[0].chart.options.scales.x.title.text} = ${context[0].label}`;
+                                    },
+                                    beforeBody: (context) => {
+                                        return context.flatMap(ctx => ([`${ctx.dataset.label} = ${ctx.formattedValue}`]));
+                                    }
+                                }
+                            }
                         },
-                        options: {
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: () => {
-                                            return null;
-                                        },
-                                        title: (context) => {
-                                            return `${context[0].chart.options.scales.x.title.text}: ${context[0].label}`;
-                                        },
-                                        beforeBody: (context) => {
-                                            return context.flatMap(ctx => ([`${ctx.dataset.label}:`, `  ${ctx.chart.options.scales.y.title.text} = ${ctx.formattedValue}`]));
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    title: {
-                                        text: obj.x,
-                                        display: true,
-                                        color: fontColor
-                                    },
-                                    ticks: {
-                                        color: fontColor
-                                    },
-                                    grid: {
-                                        color: gridColor
-                                    }
+                        scales: {
+                            x: {
+                                title: {
+                                    text: graphObj[key].x,
+                                    display: true,
+                                    color: fontColor
                                 },
-                                y: {
-                                    title: {
-                                        text: obj.y,
-                                        display: true,
-                                        color: fontColor
-                                    },
-                                    ticks: {
-                                        color: fontColor
-                                    },
-                                    grid: {
-                                        color: gridColor
-                                    }
+                                ticks: {
+                                    color: fontColor
+                                },
+                                grid: {
+                                    color: gridColor
                                 }
                             },
-                            responsive: true,
-                        }
-                    });
-                    if (!Object.keys(graphs).includes(maxTab)) graphs[maxTab] = {};
-                    graphs[maxTab][graphName] = graph;
-                }
+                            y: {
+                                ticks: {
+                                    color: fontColor
+                                },
+                                grid: {
+                                    color: gridColor
+                                }
+                            }
+                        },
+                        responsive: true,
+                    }
+                });
+                if (!Object.keys(graphs).includes(maxTab)) graphs[maxTab] = {};
+                graphs[maxTab][key] = graph;
                 break;
             }
             case 'table': {

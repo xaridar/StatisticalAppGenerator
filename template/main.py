@@ -151,7 +151,7 @@ def upload():
     json_out = eval(res)
     if 'error' in json_out:
         print(json_out['error'])
-        return jsonify(success=False, error='Server error; please try again later.')
+        return jsonify(success=False, error=json_out['error'])
         
     return jsonify(success=True, data=json_out)
 

@@ -306,7 +306,7 @@ if __name__ == '__main__':
         # checks array variable names against inputs
         varnames = [option['length'] for option in cf['options'] if option['type'] == 'array' and isinstance(option['length'], str)]
         for varname in varnames:
-            if varname[1:] not in inp_unique or varname in [option['name'] for option in cf['settings']['input_file']['files']]:
+            if varname not in inp_unique or varname in [option['name'] for option in cf['settings']['input_file']['files']]:
                 raise Exception('Please check validity of all variable array length reference names!')
 
         # creates generated .env file
@@ -322,13 +322,8 @@ if __name__ == '__main__':
         for option in cf['output']['format']:
             match option['type']:
                 case 'graph':
-                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{option["y_axis"]})')
-                    parent_name = option["parent_name"]
-                    if parent_name is None:
-                        parent_name = option["name"]
-                    if parent_name not in graph_obj:
-                        graph_obj[escape(parent_name)] = []
-                    graph_obj[parent_name].append({'name': option["name"], 'x': option["x_axis"], 'y': option["y_axis"], 'type': option["plot_type"]})
+                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{'|'.join([col['column_name'] for col in option["y_axis"]] if isinstance(option['y_axis'], list) else '')})')
+                    graph_obj[option["name"]] = {'x': option["x_axis"], 'y': option["y_axis"] if not isinstance(option["y_axis"], list) else [col['plot_type'] for col in option["y_axis"]]}
                 case 'table':
                     output_strs.append(f'{option["name"]}:table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
                 case 'text':
@@ -339,12 +334,11 @@ if __name__ == '__main__':
         env_vars['OPTIONS'] = json.dumps(cf['options'])
         env_vars['OUTPUT_STRING'] = ','.join(output_strs)
         bar()
-                
-        if cf['settings']['input_file']['enabled']:
-            for option in cf['settings']['input_file']['files']:
-                env_vars[f'XVAR_{option['name']}'] = option['x_param']
-                env_vars[f'YVAR_{option['name']}'] = option['y_param']
-                env_vars[f'REQUIRED_{option['name']}'] = not option['optional']
+
+        for option in cf['settings']['input_file']['files']:
+            env_vars[f'XVAR_{option['name']}'] = option['x_param']
+            env_vars[f'YVAR_{option['name']}'] = option['y_param']
+            env_vars[f'REQUIRED_{option['name']}'] = not option['optional']
         bar()
 
 
@@ -368,15 +362,17 @@ if __name__ == '__main__':
         title.string = escape(cf['settings']['title'])
         html.find('div', class_='tab active').insert(0, title)
 
-        if cf['settings']['input_file']['enabled']:
-            graph = cf['settings']['input_file']['graph_input']
-            for i, option in enumerate(cf['settings']['input_file']['files']):
-                div = createFileInput(html, option, graph)
-                form.insert(i, div)
+        graph = cf['settings']['input_file']['graph_input']
+        for i, option in enumerate(cf['settings']['input_file']['files']):
+            div = createFileInput(html, option, graph)
+            form.insert(i, div)
 
         # set color theme
         body = base_html.find('body')
         body['color'] = cf['settings']['themeColor']
+
+        # set title
+        base_html.find('title').string = cf['settings']['title']
         
         bar.text('Copying template app...')
         # copies 'template' directory (in executable) to new 'app' directory
