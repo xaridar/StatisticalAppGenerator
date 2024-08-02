@@ -82,6 +82,7 @@ def upload():
             # number
             case 'number':
                 val = request.form.get(option)
+                prefix = '-'
                 try:
                     float(val)
                 except ValueError:
@@ -91,9 +92,10 @@ def upload():
                 if opt['integer']:
                     try:
                         int(val)
+                        prefix = '-i'
                     except ValueError:
                         return jsonify(success=False, error=f"Parameter '{option}' should be an integer.")
-                args.append(f'-{option}')
+                args.append(f'{prefix}{option}')
                 args.append(val)
             # select
             case 'select':
@@ -107,7 +109,7 @@ def upload():
                     args.append(f'-[""]{option}')
                     args.append(', '.join(val))
                 else:
-                    args.append(f'-{option}')
+                    args.append(f'-""{option}')
                     args.append(val[0])
             # array
             case 'array':
@@ -128,11 +130,11 @@ def upload():
                             float(n)
                         except ValueError:
                             return jsonify(success=False, error=f"Expected all number values for parameter '{option}'.")
-                        if (opt['items']['min'] is not None and n < opt['items']['min']) or (opt['items']['max'] and n > opt['items']['max']):
+                        if (opt['items']['min'] is not None and float(n) < opt['items']['min']) or (opt['items']['max'] and float(n) > opt['items']['max']):
                             return jsonify(success=False, error=f"A value for parameter '{option}' does not adhere to its defined minimum and maximum.")
                         if opt['items']['integer']:
                             try:
-                                int(val)
+                                int(n)
                             except ValueError:
                                 return jsonify(success=False, error=f"A value for parameter '{option}' should be an integer.")
 

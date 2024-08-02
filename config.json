@@ -1,40 +1,41 @@
 {
     "options": [
         {
+            "name": "num",
+            "description": "Number of calculations",
+            "type": "number",
+            "integer": true
+        },
+        {
             "name": "cv",
             "description": "Coefficient of Variation (CV)",
-            "type": "number"
+            "type": "array",
+            "length": "num",
+            "items": {
+                "type": "number"
+            }
         },
         {
             "name": "beta",
             "description": "Type II Error Rate (beta)",
-            "type": "number",
-            "min": 0,
-            "max": 0.5
+            "type": "array",
+            "length": "num",
+            "items": {
+                "type": "number",
+                "min": 0,
+                "max": 0.5
+            }
         },
         {
             "name": "k",
             "description": "Dilution Factor (k)",
-            "type": "number",
-            "min": 0,
-            "max": 1
-        },
-        {
-            "name": "threshold",
-            "description": "Maximum acceptable LOD value",
-            "type": "number",
-            "integer": true,
-            "min": 0
-        },
-        {
             "type": "array",
-            "description": "Array",
+            "length": "num",
             "items": {
-                "type": "text",
-                "pattern": "^\\S+$"
-            },
-            "length": "threshold",
-            "name": "arr"
+                "type": "number",
+                "min": 0,
+                "max": 1
+            }
         }
     ],
     "output": {
@@ -44,24 +45,14 @@
                 "description": "Input CV",
                 "type": "graph",
                 "x_axis": "n",
-                "y_axis": "line"
+                "y_axis": "line",
+                "y_label": "LOD"
             },
             {
                 "name": "Table",
                 "description": "Table",
-                "type": "table",
-                "precision": 1
-            },
-            {
-                "name": "Table2",
-                "description": "Table2",
                 "type": "data_table",
-                "precision": [0,3,3]
-            },
-            {
-                "name": "Text",
-                "description": "Text",
-                "type": "text"
+                "precision": 3
             }
         ]
     },

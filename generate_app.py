@@ -10,6 +10,7 @@ from alive_progress import alive_bar
 import numpy as np
 from html import escape
 import copy
+import gui
 
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
 outp_path = './app'
@@ -17,16 +18,16 @@ outp_path = './app'
 def check_paths():
     # check filepaths
     try:
-        with open(args.math_filepath) as math_file:
+        with open(args['math_filepath']) as math_file:
             ext = math_file.name.split('.')[-1]
             if ext not in ['py', 'r']:
                 raise Exception('bad filetype')
     except (Exception):
         raise Exception('Math file must be a valid .r or .py path')
 
-    if args.config is not None:
+    if args['config'] is not None:
         try:
-            with open(args.config) as cf:
+            with open(args['config']) as cf:
                 ext = cf.name.split('.')[-1]
                 if ext != 'json':
                     raise Exception('bad filetype')
@@ -160,7 +161,7 @@ def createInput(html, options):
                     inner_small_string += f', min: {options["items"]["min"]}'
                 if options['items']['max'] is not None:
                     inp['max'] = options['items']['max']
-                    inner_small_string += f', min: {options["items"]["min"]}'
+                    inner_small_string += f', max: {options["items"]["max"]}'
             sublabel = html.new_tag('label')
             sublabel['for'] = f'{options["name"]}_'
             span = html.new_tag('span')
@@ -177,7 +178,7 @@ def createInput(html, options):
                 num_inps = options['length']
             else:
                 num_inps = 1
-                ctr['data-depends-on'] = options['length'][1:]
+                ctr['data-depends-on'] = options['length']
 
             ctr['class'] = f'array-input-{options["name"]}'
 
@@ -273,25 +274,39 @@ def createFileInput(html, options, graph):
     return ctr
 
 if __name__ == '__main__':
-    parser = ap.ArgumentParser(prog='Statistical App Generator', description='Generates a stats web app from a template')
-    parser.add_argument('math_filepath', help="Path to a .py or .r file, containing a function (named 'calc' unless otherwise specified in config), which does math given an argument object and outputs an object")
-    parser.add_argument('-c', '--config', help="Path to a .JSON file (format in schema.json) for app configuration", required=True)
-    parser.add_argument('-o', '--out', help="Relative or absolute path where an 'app' directory should be generated containing the application", required=True)
+    if len(sys.argv) == 1:
+        gui_mode = True
+        # GUI
+        args = gui.create_gui()
+    else:
+        gui_mode = False
+        parser = ap.ArgumentParser(prog='Statistical App Generator', description='Generates a stats web app from a template')
+        parser.add_argument('math_filepath', help="Path to a .py or .r file, containing a function (named 'calc' unless otherwise specified in config), which does math given an argument object and outputs an object", required=True)
+        parser.add_argument('-c', '--config', help="Path to a .JSON file (format in README.md) for app configuration", required=True)
+        parser.add_argument('-o', '--out', help="Relative or absolute path where an 'app' directory should be generated containing the application", required=True)
 
-    args = parser.parse_args()
-    outp_path = os.path.join(args.out, 'app')
+        args = parser.parse_args()
+    outp_path = os.path.join(args['out'], 'app')
 
-    with alive_bar(unknown='brackets', spinner='classic', calibrate=40) as bar:
-        bar.text('Reading config schema...')
+    try:
+        if not gui_mode:
+            bar = alive_bar(unknown='brackets', spinner='classic', calibrate=40)
+        else:
+            bar = None
+        if bar:
+            bar.text('Reading config schema...')
         with open(os.path.join(sys._MEIPASS, './schema.json') if getattr(sys, 'frozen', False) else './schema.json') as jsonschema:
             config_schema = json.load(jsonschema)
-        bar()
+        if bar:
+            bar()
 
-        bar.text('Parsing config...')
+        if bar:
+            bar.text('Parsing config...')
         check_paths()
-        with open(args.config) as cf:
+        with open(args['config']) as cf:
             cf = parseConfigToObj(cf, config_schema)
-        bar()
+        if bar:
+            bar()
 
         # checks for repeat inputs/outputs
         inp_unique, cts = np.unique([option['name'] for option in [*cf['options'], *cf['settings']['input_file']['files']]], return_counts=True)
@@ -301,7 +316,8 @@ if __name__ == '__main__':
         outp_unique, cts = np.unique([option['name'] for option in cf['output']['format']], return_counts=True)
         if len(outp_unique[cts > 1]) > 0:
             raise Exception('Repeated output names not allowed!')
-        bar()
+        if bar:
+            bar()
 
         # checks array variable names against inputs
         varnames = [option['length'] for option in cf['options'] if option['type'] == 'array' and isinstance(option['length'], str)]
@@ -312,8 +328,8 @@ if __name__ == '__main__':
         # creates generated .env file
         env_vars = {
             'METHOD': cf['output']['function_name'],
-            'LANGUAGE': 'python' if args.math_filepath.split('.')[-1] == 'py' else 'Rscript',
-            'EXTENSION': args.math_filepath.split('.')[-1]
+            'LANGUAGE': 'python' if args['math_filepath'].split('.')[-1] == 'py' else 'Rscript',
+            'EXTENSION': args['math_filepath'].split('.')[-1]
         }
 
         output_strs = []
@@ -322,8 +338,8 @@ if __name__ == '__main__':
         for option in cf['output']['format']:
             match option['type']:
                 case 'graph':
-                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{'|'.join([col['column_name'] for col in option["y_axis"]] if isinstance(option['y_axis'], list) else '')})')
-                    graph_obj[option["name"]] = {'x': option["x_axis"], 'y': option["y_axis"] if not isinstance(option["y_axis"], list) else [col['plot_type'] for col in option["y_axis"]]}
+                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{'|'.join([col['column_name'] for col in option["y_axis"]] if isinstance(option['y_axis'], list) else '!')})')
+                    graph_obj[option["name"]] = {'x': option["x_axis"], 'y': option["y_axis"] if not isinstance(option["y_axis"], list) else [col['plot_type'] for col in option["y_axis"]], 'legend': option['legend'], 'x_label': option['x_label'] or option['x_axis'], 'y_label': option['y_label']}
                 case 'table':
                     output_strs.append(f'{option["name"]}:table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
                 case 'text':
@@ -333,22 +349,26 @@ if __name__ == '__main__':
             out_descr[option['name']] = option['description']
         env_vars['OPTIONS'] = json.dumps(cf['options'])
         env_vars['OUTPUT_STRING'] = ','.join(output_strs)
-        bar()
+        if bar:
+            bar()
 
         for option in cf['settings']['input_file']['files']:
             env_vars[f'XVAR_{option['name']}'] = option['x_param']
             env_vars[f'YVAR_{option['name']}'] = option['y_param']
             env_vars[f'REQUIRED_{option['name']}'] = not option['optional']
-        bar()
+        if bar:
+            bar()
 
 
-        bar.text('Generating HTML...')
+        if bar:
+            bar.text('Generating HTML...')
         # reads existing HTML template
         with open(os.path.join(inp_path, 'templates/index.html')) as file:
             html = BeautifulSoup(file.read(), 'html.parser')
         with open(os.path.join(inp_path, 'templates/base.html')) as file:
             base_html = BeautifulSoup(file.read(), 'html.parser')
-        bar()
+        if bar:
+            bar()
         
         # adds necessary options to templates/index.html
         form = html.find('form', class_="calcForm")
@@ -374,18 +394,23 @@ if __name__ == '__main__':
         # set title
         base_html.find('title').string = cf['settings']['title']
         
-        bar.text('Copying template app...')
+        if bar:
+            bar.text('Copying template app...')
         # copies 'template' directory (in executable) to new 'app' directory
         if os.path.exists(outp_path):
             rmtree(outp_path)
-            bar()
+            if bar:
+                bar()
         copytree(inp_path, outp_path)
-        bar()
+        if bar:
+            bar()
 
-        bar.text(f'Copying {args.math_filepath} to app...')
+        if bar:
+            bar.text(f'Copying {args['math_filepath']} to app...')
         # copies math file into app
-        copyfile(args.math_filepath, os.path.join(outp_path, f'calculation.{args.math_filepath.split('.')[-1]}'))
-        bar()
+        copyfile(args['math_filepath'], os.path.join(outp_path, f'calculation.{args['math_filepath'].split('.')[-1]}'))
+        if bar:
+            bar()
 
             
         # writes output
@@ -394,20 +419,30 @@ if __name__ == '__main__':
             file.write(html.prettify(formatter=formatter))
         with open(os.path.join(outp_path, 'templates/base.html'), 'w') as file:
             file.write(base_html.prettify(formatter=formatter))
-        bar()
+        if bar:
+            bar()
 
 
-        bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
+        if bar:
+            bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
         with open(os.path.join(outp_path, '.env'), 'w') as file:
             file.write('\n'.join([f'{kv[0]}={kv[1]}' for kv in env_vars.items()]))
-        bar()
+        if bar:
+            bar()
 
-        bar.text('Generating JavaScript...')
+        if bar:
+            bar.text('Generating JavaScript...')
         # writes graph_obj to script.js
         with open(os.path.join(inp_path, 'static/script.js'), 'r') as file:
             js_contents = file.read()
         with open(os.path.join(outp_path, 'static/script.js'), 'w') as file:
             file.write('\n'.join([f'const graphObj = {json.dumps(graph_obj)};', f'const descriptions = {json.dumps(out_descr)};', js_contents]))
-        bar()
+        if bar:
+            bar()
+    except Exception as e:
+        if gui_mode:
+            gui.create_exc(str(e))
+        else:
+            raise e
 
-    print(f'App generated at {os.path.abspath(outp_path)}')
+print(f'App generated at {os.path.abspath(outp_path)}')

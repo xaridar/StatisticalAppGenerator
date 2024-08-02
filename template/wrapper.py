@@ -30,14 +30,18 @@ def convert_to_obj(args):
         elif word.startswith('-[]'):
             # number array
             i += 1
-            obj[word[3:]] = [float(elem) for elem in args[i].split(', ')]
-        else:
-            # number
-            i += 1
             if (args[i] == ''):
-                obj[word[1:]] = []
+                obj[word[3:]] = []
             else:
-                obj[word[1:]] = float(args[i])
+                obj[word[3:]] = [float(elem) for elem in args[i].split(', ')]
+        elif word.startswith('-i'):
+            # integer
+            i += 1
+            obj[word[2:]] = int(args[i])
+        else:
+            # float
+            i += 1
+            obj[word[1:]] = float(args[i])
         i += 1
     return obj
 
@@ -72,7 +76,8 @@ warnings.filterwarnings("ignore")
 try:
     out_obj = method(**as_obj)
 except Exception as e:
-    print({'error': e})
+    print({'error': str(e)})
+    sys.exit(0)
 warnings.filterwarnings("default")
 
 # format output
@@ -93,7 +98,7 @@ for key, value in out_obj.items():
         output[key]['labels'] = ['Infinity' if data == math.inf else '-Infinity' if data == -math.inf else data for data in list(value[x_var])]
         vals = []
         vars = y_var.split('|')
-        if y_var == '':
+        if y_var == '!':
             vars = [col for col in list(value.columns) if col != x_var]
         for var in vars:
             if var not in value:
@@ -107,7 +112,7 @@ for key, value in out_obj.items():
         try:
             precision = [int(prec) for prec in output_format[key][6:-1].split('|')]
             if len(precision) != 1 and len(precision) != 2:
-                print({'error': "Table precision should either be \\'any\\', a single int between 0 and 6, or an array with 1 int for each resulting column."})
+                print({'error': "Table precision should either be \'any\', a single int between 0 and 6, or an array with 1 int for each resulting column."})
                 sys.exit(0)
             if len(precision) == 1:
                 precision *= 2
@@ -122,7 +127,7 @@ for key, value in out_obj.items():
         try:
             precision = [int(prec) for prec in output_format[key][11:-1].split('|')]
             if len(precision) != 1 and len(precision) != len(table['columns']):
-                print({'error': "Table precision should either be \\'any\\', a single int between 0 and 6, or an array with 1 int for each resulting column."})
+                print({'error': "Table precision should either be \'any\', a single int between 0 and 6, or an array with 1 int for each resulting column."})
                 sys.exit(0)
             if len(precision) == 1:
                 precision *= len(table['columns'])

@@ -33,6 +33,11 @@ parse_args <- function(args) {
         val <- strsplit(args[i], ", ")
         val <- as.numeric(val[[1]])
       }
+    } else if (startsWith(word, "-i")) {
+      # integer
+      i <- i + 1
+      short_word <- substring(word, 3)
+      val <- as.integer(args[i])
     } else if (startsWith(word, "-")) {
       # number
       i <- i + 1
@@ -172,7 +177,7 @@ for (name in names(out_obj)) {
     inner_list$labels <- value[x_var][[1]]
     vals <- vector()
     vars <- strsplit(y_var, "|")
-    if (y_var == "") {
+    if (y_var == "!") {
       vars <- colnames(value)
       vars <- vars[!vars == x_var]
     }
@@ -183,7 +188,7 @@ for (name in names(out_obj)) {
       }
       vals <- c(vals, convert_list(value[[vars[i]]]))
     }
-    inner_list$values <- value[y_var][[1]]
+    inner_list$values <- vals
     inner_list$columns <- vars
   } else if (arg_type == "table") {
     d <- list(columns = c("Param", "Value"))
@@ -196,7 +201,7 @@ for (name in names(out_obj)) {
     , "\\|")[[1]]))
     if (!any(is.na(precision))) {
       if (length(precision) != 1 && length(precision) != 2) {
-        cat(convert_list(list(error = "Table precision should either be \\'any\\', a single integer between 0 and 6, or an array with an integer for each resulting column.")))
+        cat(convert_list(list(error = "Table precision should either be \'any\', a single integer between 0 and 6, or an array with an integer for each resulting column.")))
         quit()
       }
       if (length(precision) == 1) {
@@ -240,7 +245,7 @@ for (name in names(out_obj)) {
     , "\\|")[[1]]))
     if (!any(is.na(precision))) {
       if (length(precision) != 1 && length(precision) != length(names(value))) {
-        cat(convert_list(list(error = "Table precision should either be \\'any\\', a single integer between 0 and 6, or an array with an integer for each resulting column.")))
+        cat(convert_list(list(error = "Table precision should either be \'any\', a single integer between 0 and 6, or an array with an integer for each resulting column.")))
         quit()
       }
       if (length(precision) == 1) {

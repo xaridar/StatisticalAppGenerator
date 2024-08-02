@@ -100,7 +100,7 @@ The required configuration file follows a strict format to ensure effective app 
 
                 Parameters:
                 - `x_axis` (**string** | *required*) - Specifies the column of the returned dataframe to plot on the X axis.
-                - `y_axis` (**array, "line", "scatter", or "bar"** | *required*) - Specifies the columns of the returned dataframe to plot on the Y axis.
+                - `y_axis` (**array, "line", "scatter", or "bar"** | *default = "line"*) - Specifies the columns of the returned dataframe to plot on the Y axis.
                 
                     If a string is passed, this will be used as the plot type for all columns in the passed dataframe (except `x_axis`).
 
@@ -110,6 +110,9 @@ The required configuration file follows a strict format to ensure effective app 
                         - **`"line"`**
                         - **`"scatter"`**
                         - **`"bar"`**
+                - `x_label` (**string** | *default = `x_axis`*) - A label to display on the graph's X axis.
+                - `y_label` (**string** | *required*`) - A label to display on the graph's Y axis.
+                - `legend` (**boolean** | *default = true*) - If false, the default legenr for the resulting graph will be disabled.
 
             - **`"table"`** - Output is translated from a key-value pair to an HTML table element.
             

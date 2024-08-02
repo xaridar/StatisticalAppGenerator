@@ -266,6 +266,10 @@ form.calcForm {
     outline: rgb(var(--active-color)) solid 2px;
 }
 
+.calcForm input[type="text"].missing, .calcForm input[type="number"].missing, .calcForm select.missing, .calcForm .file-upload.missing, .calcForm input[type="checkbox"].missing {
+    outline: red solid 2px;
+}
+
 .calcForm input:disabled, .calcForm select:disabled, .calcForm button:disabled, .calcForm .file-upload.disabled {
     color: #aaa;
     cursor: default;
@@ -373,11 +377,32 @@ form.calcForm {
     margin-block: 0;
 }
 
+/* Output */
+.output {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding-inline: 1rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.output-ctr {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+/* Graphs */
+.output-graph {
+    flex-basis: 100%;
+}
+
 /* Tables */
 .output-ctr table {
     border-collapse: collapse;
     border-color: var(--font-color);
     border-style: hidden;
+    overflow-x: auto;
 }
 
 .output-ctr table thead {
@@ -387,4 +412,35 @@ form.calcForm {
 .output-ctr table th, table td {
     padding: 0.25rem 0.55rem;
     border-inline: 1px solid;
+}
+
+.table-ctr {
+    overflow-x: auto;
+}
+
+@media screen and (max-width: 400px) {
+    .output {
+        padding: 0;
+    }
+}
+
+@media print {
+    #handlesCtr {
+        display: none;
+    }
+    .output {
+        gap: 0.5rem;
+    }
+    .output-ctr canvas {
+        margin: auto;
+    }
+    body {
+        width: 1024px;
+    }
+    .download-btn {
+        display: none !important;
+    }
+    .table-ctr {
+        overflow: hidden;
+    }
 }

@@ -249,9 +249,20 @@
                                             }
                                         ],
                                         "default": "line"
+                                    },
+                                    "x_label": {
+                                        "type": "string",
+                                        "default": null
+                                    },
+                                    "y_label": {
+                                        "type": "string"
+                                    },
+                                    "legend": {
+                                        "type": "boolean",
+                                        "default": true
                                     }
                                 },
-                                "required": ["name", "description", "type", "x_axis"]
+                                "required": ["name", "description", "type", "x_axis", "y_label"]
                             },
                             {
                                 "additionalProperties": false,

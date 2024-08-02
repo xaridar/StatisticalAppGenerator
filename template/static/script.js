@@ -69,6 +69,7 @@ const popTab = (data, tab) => {
         switch (element.type) {
             case 'graph': {
                 if (!Object.keys(graphObj).includes(key)) return;
+                div.classList.add('output-graph')
                 const labelsSet = new Set(element.labels);
                 const datasets = [];
                 for (let i = 0; i < element.columns.length; i++) {
@@ -81,12 +82,16 @@ const popTab = (data, tab) => {
                     datasets.push(dataset);
                 }
                 const h2 = document.createElement('h2');
-                h2.textContent = key;
+                h2.textContent = descriptions[key];
                 div.appendChild(h2);
                 labels = [...labelsSet].sort((a, b) => a - b);
                 const canvas = document.createElement('canvas');
                 $(canvas).addClass('output-graph');
-                div.appendChild(canvas);
+                const ctr = document.createElement('div');
+                ctr.appendChild(canvas);
+                $(ctr).css('width', '100%');
+                $(ctr).css('height', 'max(40vh, 30vw)');
+                div.appendChild(ctr);
                 
                 // show chart
                 const ctx = canvas.getContext('2d');
@@ -112,12 +117,15 @@ const popTab = (data, tab) => {
                                         return context.flatMap(ctx => ([`${ctx.dataset.label} = ${ctx.formattedValue}`]));
                                     }
                                 }
+                            },
+                            legend: {
+                                display: graphObj[key].legend,
                             }
                         },
                         scales: {
                             x: {
                                 title: {
-                                    text: graphObj[key].x,
+                                    text: graphObj[key].x_label,
                                     display: true,
                                     color: fontColor
                                 },
@@ -129,6 +137,11 @@ const popTab = (data, tab) => {
                                 }
                             },
                             y: {
+                                title: {
+                                    text: graphObj[key].y_label,
+                                    display: true,
+                                    color: fontColor
+                                },
                                 ticks: {
                                     color: fontColor
                                 },
@@ -138,6 +151,7 @@ const popTab = (data, tab) => {
                             }
                         },
                         responsive: true,
+                        maintainAspectRatio: false
                     }
                 });
                 if (!Object.keys(graphs).includes(maxTab)) graphs[maxTab] = {};
@@ -148,6 +162,7 @@ const popTab = (data, tab) => {
                 const h2 = document.createElement('h2');
                 h2.textContent = descriptions[key];
                 div.appendChild(h2);
+                const ctr = $(document.createElement('div'));
                 const table = $(document.createElement('table'));
 
                 const thead = $(document.createElement('thead'));
@@ -170,7 +185,9 @@ const popTab = (data, tab) => {
                     tbody.append(tr[0]);
                 }
                 table.append(tbody[0]);
-                div.appendChild(table[0]);
+                ctr.addClass('table-ctr');
+                ctr.append(table[0]);
+                div.appendChild(ctr[0]);
                 break;
             }
             case 'text': {
@@ -313,7 +330,7 @@ $(() => {
                             }
                         }
                     },
-                    responsive: false,
+                    responsive: true
                 }
             });
         }
@@ -322,12 +339,14 @@ $(() => {
 
     $(document).on('submit', '.calcForm', async function (e) {
         e.preventDefault();
-        if ($(this).find('.required').is((i, el) => {
+        const missing = $(this).find('.required').filter((i, el) => {
             if (!el.offsetParent) return false;
             return !$(el).val() || $(el).val() == "";
-        })) {
+        });
+        if (missing.length) {
             $('#error').text('Please fill all required fields.')
             $('#error').addClass('show');
+            $(missing).addClass('missing');
             return;
         }
         $('#error').removeClass('show');
@@ -352,10 +371,20 @@ $(() => {
                 const newTab = $(document.createElement('div'));
                 newTab.addClass('tab');
                 newTab.attr('data-tab', tabs);
-                h1 = $(document.createElement('h1'));
+                const h1 = $(document.createElement('h1'));
                 h1.text($('.tab[data-tab="0"] h1').text());
                 newTab.append(h1[0]);
-                popTab(res.data, newTab);
+                const div = $(document.createElement('div'));
+                div.addClass('output');
+                newTab.append(div[0]);
+                popTab(res.data, div);
+                const download = $(document.createElement('a'));
+                download.prop('href', 'javascript:print()');
+                download.addClass('download-btn');
+                download.text('Download output');
+                download.css('display', 'inline-block');
+                download.css('margin-top', '1rem');
+                newTab.append(download[0]);
                 $('#tabs').append(newTab[0]);
                 
                 const handle = $((document).createElement('span'));
@@ -371,9 +400,10 @@ $(() => {
 
                 tabs++;
                 changeTab(tabs-1);
+            } else {
+                $('#error').text(res.error)
+                $('#error').addClass('show');
             }
-            $('#error').text(res.error)
-            $('#error').addClass('show');
         } catch (e) {
             console.error(e);
         }
@@ -478,4 +508,21 @@ $(() => {
     })
 
     $('[data-depends-on]').parent().parent().css('display', 'none');
+
+    $(document).on('keydown', '.calcForm input.missing', function () {
+        $(this).removeClass('missing');
+    });
+    
+    /* Chart download */
+    $(window).bind('beforeprint', () => {
+        for (let id in Chart.instances) {
+            Chart.instances[id].resize(800, 400);
+        }
+    });
+
+    $(window).bind('afterprint', () => {
+        for (let id in Chart.instances) {
+            Chart.instances[id].resize();
+        }
+    });
 });
