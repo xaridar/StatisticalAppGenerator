@@ -67,3 +67,18 @@ def create_exc(exc):
     sv_ttk.set_theme('light')
     window.protocol('WM_DELETE_WINDOW', lambda: sys.exit(0))
     window.mainloop()
+
+def show_success_msg(path):
+    window = tk.Tk()
+    window.title('Statistical App Generator')
+
+    frame = ttk.Frame(window)
+    label = ttk.Label(frame, text=f'App generated at {path}')
+    label.pack()
+    btn = ttk.Button(frame, text='OK', command=lambda: sys.exit(0))
+    btn.pack(pady=5)
+    
+    frame.pack(fill='x', padx=25, pady=20)
+    sv_ttk.set_theme('light')
+    window.protocol('WM_DELETE_WINDOW', lambda: sys.exit(0))
+    window.mainloop()

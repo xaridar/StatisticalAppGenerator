@@ -445,4 +445,7 @@ if __name__ == '__main__':
         else:
             raise e
 
-print(f'App generated at {os.path.abspath(outp_path)}')
+if gui_mode:
+    gui.show_success_msg(os.path.abspath(outp_path))
+else:
+    print(f'App generated at {os.path.abspath(outp_path)}')
