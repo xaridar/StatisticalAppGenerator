@@ -338,7 +338,7 @@ if __name__ == '__main__':
         for option in cf['output']['format']:
             match option['type']:
                 case 'graph':
-                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{'|'.join([col['column_name'] for col in option["y_axis"]] if isinstance(option['y_axis'], list) else '!')})')
+                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{"|".join([col['column_name'] for col in option["y_axis"]] if isinstance(option['y_axis'], list) else "!")})')
                     graph_obj[option["name"]] = {'x': option["x_axis"], 'y': option["y_axis"] if not isinstance(option["y_axis"], list) else [col['plot_type'] for col in option["y_axis"]], 'legend': option['legend'], 'x_label': option['x_label'] or option['x_axis'], 'y_label': option['y_label']}
                 case 'table':
                     output_strs.append(f'{option["name"]}:table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
@@ -353,9 +353,9 @@ if __name__ == '__main__':
             bar()
 
         for option in cf['settings']['input_file']['files']:
-            env_vars[f'XVAR_{option['name']}'] = option['x_param']
-            env_vars[f'YVAR_{option['name']}'] = option['y_param']
-            env_vars[f'REQUIRED_{option['name']}'] = not option['optional']
+            env_vars[f'XVAR_{option["name"]}'] = option['x_param']
+            env_vars[f'YVAR_{option["name"]}'] = option['y_param']
+            env_vars[f'REQUIRED_{option["name"]}'] = not option['optional']
         if bar:
             bar()
 
@@ -406,7 +406,7 @@ if __name__ == '__main__':
             bar()
 
         if bar:
-            bar.text(f'Copying {args['math_filepath']} to app...')
+            bar.text(f'Copying {args["math_filepath"]} to app...')
         # copies math file into app
         copyfile(args['math_filepath'], os.path.join(outp_path, f'calculation.{args['math_filepath'].split('.')[-1]}'))
         if bar:
@@ -424,7 +424,7 @@ if __name__ == '__main__':
 
 
         if bar:
-            bar.text(f'Writing to {os.path.join(outp_path, '.env')}')
+            bar.text(f'Writing to {os.path.join(outp_path, ".env")}')
         with open(os.path.join(outp_path, '.env'), 'w') as file:
             file.write('\n'.join([f'{kv[0]}={kv[1]}' for kv in env_vars.items()]))
         if bar:

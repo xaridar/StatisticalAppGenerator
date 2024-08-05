@@ -40,7 +40,7 @@ def createBrowseButton(window, argname, help, folder=False, **kwargs):
     help_btn.grid(row=0, column=1, padx=5)
     Hovertip(help_btn, help)
     inp = ttk.Entry(frame)
-    inp.grid(row=0, column=2, padx=5)
+    inp.grid(row=0, column=2, padx=5, sticky='we')
     def set_text(text):
         inp.delete(0, tk.END)
         inp.insert(0, text)
