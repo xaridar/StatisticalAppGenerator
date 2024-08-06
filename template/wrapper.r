@@ -1,3 +1,7 @@
+options(warn=-1)
+suppressPackageStartupMessages(library(shinylight))
+options(warn=0)
+
 parse_args <- function(args) {
   obj <- list()
   i <- 1
@@ -71,7 +75,7 @@ load_file <- function(file, args_obj) {
   args_obj
 }
 
-convert_list <- function(val) {
+convert_list <- function(val, arr = FALSE) {
   val_str <- ""
   i <- 0
   if (length(val) == 0) val_str <- "''"
@@ -93,7 +97,7 @@ convert_list <- function(val) {
       }
       i <- i + 1
     }
-    if (length(val) > 1 || startsWith(val_str, "[")) val_str <- paste0("[", val_str, "]")
+    if (length(val) > 1 || startsWith(val_str, "[") || arr) val_str <- paste0("[", val_str, "]")
   } else if (is.numeric(val)) {
     for (v in val) {
       if (v == Inf) v <- "'Infinity'"
@@ -129,13 +133,15 @@ suppressPackageStartupMessages(source(args[1]))
 options(warn = 0)
 func <- get(method_name)
 
-out_obj <- tryCatch({
-  do.call(func, args_obj)
+out_list <- tryCatch({
+  encodePlotAs(list(type = "png", width = 750, height = 500), function(){do.call(func, args_obj)})
 }, error = function(e) {
   spl <- strsplit(strsplit(as.character(e), ": ")[[1]][2], "")
   cat(convert_list(list(error = paste(spl[[1]], sep = "", collapse = ""))))
   quit()
 })
+
+out_obj <- out_list$data
 
 # format output
 output_format <- list()
@@ -189,7 +195,7 @@ for (name in names(out_obj)) {
       vals <- c(vals, convert_list(value[[vars[i]]]))
     }
     inner_list$values <- vals
-    inner_list$columns <- vars
+    inner_list$columns <- convert_list(vars, arr = TRUE)
   } else if (arg_type == "table") {
     d <- list(columns = c("Param", "Value"))
     data <- vector()
@@ -249,7 +255,7 @@ for (name in names(out_obj)) {
         quit()
       }
       if (length(precision) == 1) {
-        precision <- rep(precision, length(names(values)))
+        precision <- rep(precision, length(names(value)))
       }
       for (row in rows) {
         new_row <- vector()
@@ -281,5 +287,7 @@ for (name in names(out_obj)) {
   output[[i]] <- inner_list
   names(output)[i] <- key
 }
+
+output$`base64-plot` <- list(type = "base64", data = gsub('\n', '', out_list$plot))
 
 cat(convert_list(output))

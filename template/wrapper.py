@@ -4,6 +4,9 @@ import os
 import importlib.util
 import warnings
 import math
+import matplotlib.pyplot as plt
+import io
+import base64
 
 def convert_to_obj(args):
     obj = {}
@@ -80,6 +83,13 @@ except Exception as e:
     sys.exit(0)
 warnings.filterwarnings("default")
 
+if plt.fignum_exists(0):
+    s = io.BytesIO()
+    plt.savefig(s,format='png')
+    s = base64.b64encode(s.getvalue()).decode('utf-8')
+else:
+    s = ''
+
 # format output
 output_format = {name.split(':')[0]: name.split(':')[1] for name in output_string.split(',')}
 output = {}
@@ -137,5 +147,5 @@ for key, value in out_obj.items():
         table['columns'] = [str(el) for el in table['columns']]
         output[key]['type'] = 'table'
         output[key]['table'] = table
-
+output['base64-plot'] = {'type': 'base64', 'data': f'data:image/png;base65,{s}'}
 print(output)

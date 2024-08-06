@@ -61,12 +61,38 @@ const drawTabs = () => {
 const popTab = (data, tab) => {
     const fontColor = getComputedStyle(document.body).getPropertyValue('--font-color');
     const gridColor = getComputedStyle(document.body).getPropertyValue('--grid-color');
+
+    // base64
+    const s = data['base64-plot'].data;
+    if (s !== '') {
+        const b64_div = document.createElement('div');
+        b64_div.classList.add('output-ctr');
+        b64_div.id = `output_b64`
+        const b64_h2 = document.createElement('h2');
+        b64_h2.textContent = 'Plot';
+        b64_div.appendChild(b64_h2);
+        const b64_img = document.createElement('img');
+        const b64_ctr = document.createElement('div');
+        b64_ctr.appendChild(b64_img);
+        $(b64_ctr).css('width', '100%');
+        b64_div.appendChild(b64_ctr);
+        $(b64_img).prop('src', s);
+        $(b64_img).css('width', '100%');
+        $(b64_img).css('margin', 'auto');
+        $(b64_img).css('display', 'block');
+        $(b64_img).css('max-width', '750px');
+        $(b64_img).prop('alt', 'Output Plot');
+        tab.append(b64_div);
+    }
+    
     for (const key of Object.keys(data)) {
         const element = data[key];
         const div = document.createElement('div');
         div.classList.add('output-ctr');
         div.id = `output${key}`
         switch (element.type) {
+            case 'base64':
+                break;
             case 'graph': {
                 if (!Object.keys(graphObj).includes(key)) return;
                 div.classList.add('output-graph')
