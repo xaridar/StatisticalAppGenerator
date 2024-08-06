@@ -9,15 +9,26 @@ The intended use of SAG is for making basic web applications to share statistica
 
 SAG was developed by Elliot Topper at the National Institute of Standards and Technology, 2024.
 
-## Usage
+- To use SAG, first install the binary executable file. This file contains all needed templates and configuration.
 
-- To use SAG, first install the binary executable file. This file contains all neededtemplates and configuration.
+## Usage - GUI
+
+- To run SAG, simply run the installed executable (either through command-line or by double clicking its icon)
+- A GUI will pop up with inputs for each argument.
+    - These arguments are further explained in [Arguments](#arguments).
+- During app generation, the GUI will freeze; this is expected. If an error occurs, it will show in a pop-up window.
+- When generation has completed, the GUI will produce a popup showing the app's location.
+    - Navigate to this directory via file explorer.
+- To run the application, run `app.bat` (Windows) / `app.sh` (Mac/Linux) and go to http://localhost:5000.
+
+## Usage - CLI
+
 - To run, the following format must be used:
 ```
 $ sag [math_file] -o [out_dir] -c [config_file]
 ```
 These arguments are further explained in [Arguments](#arguments).
-- The newly generated web app will be created in [out_dir]/app. Navigate to this directory.
+- The newly generated web app will be created in `out_dir`/app. Navigate to this directory.
 - Install any packages/libraries used in `math_file`.
 - To run the application, run `app` and go to http://localhost:5000.
 
