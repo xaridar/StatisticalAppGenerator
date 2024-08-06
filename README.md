@@ -17,7 +17,7 @@ SAG was developed by Elliot Topper at the National Institute of Standards and Te
 - A GUI will pop up with inputs for each argument.
     - These arguments are further explained in [Arguments](#arguments).
 - During app generation, the GUI will freeze; this is expected. If an error occurs, it will show in a pop-up window.
-- When generation has completed, the GUI will produce a popup showing the app's location.
+- When generation has completed, the GUI will produce a pop-up window showing the app's location.
     - Navigate to this directory via file explorer.
 - To run the application, run `app.bat` (Windows) / `app.sh` (Mac/Linux) and go to http://localhost:5000.
 
@@ -44,6 +44,9 @@ SAG takes three arguments: `math_file`, `out_dir`, and `config_file`.
     - Output - function return must be in the form of a key-value pair (R list or Python dictionary), with keys matching [specified output names](#config).
         - Not all outputs specified must be returned in every case.
         - The function may not print any output (this will make the appllication fail to function)
+        - If you would like to output a custom plot (pyplot in Python or plot in R), simply call the function to create the plot
+            - To use `ggplot` in R, `print()` the output of the `ggplot` sequence.
+            - In python, ensure not to call `plt.show()`; simply call other functions to generate to plot.
     
         Depending on chosen output types the vales associated with these keys must be as follows:
         - `table` - must be a key-value pair, where each pair in the data structure is associated with a row in the associated table
