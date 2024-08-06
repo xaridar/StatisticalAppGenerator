@@ -46,7 +46,8 @@ SAG takes three arguments: `math_file`, `out_dir`, and `config_file`.
         - The function may not print any output (this will make the appllication fail to function)
         - If you would like to output a custom plot (pyplot in Python or plot in R), simply call the function to create the plot
             - To use `ggplot` in R, `print()` the output of the `ggplot` sequence.
-            - In python, ensure not to call `plt.show()`; simply call other functions to generate to plot.
+            - In Python, ensure not to call `plt.show()`; simply call other functions to generate to plot.
+            - There is no need to save any files with plot output.
     
         Depending on chosen output types the vales associated with these keys must be as follows:
         - `table` - must be a key-value pair, where each pair in the data structure is associated with a row in the associated table
