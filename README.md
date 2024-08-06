@@ -1,5 +1,7 @@
 # Statistical App Generator
 
+![SAG logo](/icon.png)
+
 ## Background
 Statistical App Generator (SAG) is a Python application which generates a Flask app for a statistical model or equation. In its most basic sense, SAG is a 'wrapper' to run a function through a web app, getting user input and displaying output as  requested by the developer.
 
