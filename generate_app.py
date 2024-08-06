@@ -15,7 +15,7 @@ import gui
 inp_path = os.path.join(sys._MEIPASS, './template') if getattr(sys, 'frozen', False) else './template'
 outp_path = './app'
 
-def check_paths():
+def check_paths(args):
     # check filepaths
     try:
         with open(args['math_filepath']) as math_file:
@@ -35,10 +35,10 @@ def check_paths():
             raise Exception('Config file must be a valid .json path')
 
 # uses 'default' values in schema to produce default config variables
-def fillDefaults(obj, schema):
+def fillDefaults(obj, schema, cf_schema):
     if '$ref' in schema:
         path = schema['$ref'][2:].split('/')
-        internal = config_schema
+        internal = cf_schema
         for ele in path:
             internal = internal[ele]
         schema = {**{x: schema[x] for x in schema.keys() if x != '$ref'}, **internal}
@@ -57,14 +57,14 @@ def fillDefaults(obj, schema):
             case 'object':
                 for key in schema['properties'].keys():
                     if key in obj:
-                        obj[key] = fillDefaults(obj[key], schema['properties'][key])
+                        obj[key] = fillDefaults(obj[key], schema['properties'][key], cf_schema)
                     elif 'default' in schema['properties'][key]:
                         obj[key] = schema['properties'][key]['default']
                     else:
-                        obj[key] = fillDefaults({}, schema['properties'][key])
+                        obj[key] = fillDefaults({}, schema['properties'][key], cf_schema)
             case 'array':
                 for i in range(len(obj)):
-                    obj[i] = fillDefaults(obj[i], schema['items'])
+                    obj[i] = fillDefaults(obj[i], schema['items'], cf_schema)
             case _:
                 pass
     return obj
@@ -76,7 +76,7 @@ def parseConfigToObj(cf, schema):
     except ValidationError as e:
         raise Exception('Invalid config file: ' + e.message)
     
-    return fillDefaults(config, schema)
+    return fillDefaults(config, schema, schema)
 
 def createInput(html, options):
     match(options['type']):
@@ -273,24 +273,13 @@ def createFileInput(html, options, graph):
     ctr.append(error)
     return ctr
 
-if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        gui_mode = True
-        # GUI
-        args = gui.create_gui()
-    else:
-        gui_mode = False
-        parser = ap.ArgumentParser(prog='Statistical App Generator', description='Generates a stats web app from a template')
-        parser.add_argument('math_filepath', help="Path to a .py or .r file, containing a function (named 'calc' unless otherwise specified in config), which does math given an argument object and outputs an object", required=True)
-        parser.add_argument('-c', '--config', help="Path to a .JSON file (format in README.md) for app configuration", required=True)
-        parser.add_argument('-o', '--out', help="Relative or absolute path where an 'app' directory should be generated containing the application", required=True)
-
-        args = parser.parse_args()
+def gen(args, gui_mode):
     outp_path = os.path.join(args['out'], 'app')
 
     try:
         if not gui_mode:
-            bar = alive_bar(unknown='brackets', spinner='classic', calibrate=40)
+            abar = alive_bar(unknown='brackets', spinner='classic', calibrate=40)
+            bar = abar.__enter__()
         else:
             bar = None
         if bar:
@@ -302,7 +291,7 @@ if __name__ == '__main__':
 
         if bar:
             bar.text('Parsing config...')
-        check_paths()
+        check_paths(args)
         with open(args['config']) as cf:
             cf = parseConfigToObj(cf, config_schema)
         if bar:
@@ -445,7 +434,22 @@ if __name__ == '__main__':
         else:
             raise e
 
-if gui_mode:
-    gui.show_success_msg(os.path.abspath(outp_path))
-else:
-    print(f'App generated at {os.path.abspath(outp_path)}')
+    if gui_mode:
+        gui.show_success_msg(os.path.abspath(outp_path))
+    else:
+        abar.__exit__(None, None, None)
+        print(f'App generated at {os.path.abspath(outp_path)}')
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        # GUI
+        gui.create_gui(gen)
+    else:
+        gui_mode = False
+        parser = ap.ArgumentParser(prog='Statistical App Generator', description='Generates a stats web app from a template')
+        parser.add_argument('math_filepath', help="Path to a .py or .r file, containing a function (named 'calc' unless otherwise specified in config), which does math given an argument object and outputs an object")
+        parser.add_argument('-c', '--config', help="Path to a .JSON file (format in README.md) for app configuration", required=True)
+        parser.add_argument('-o', '--out', help="Relative or absolute path where an 'app' directory should be generated containing the application", required=True)
+
+        args = parser.parse_args()
+        gen(vars(args), False)

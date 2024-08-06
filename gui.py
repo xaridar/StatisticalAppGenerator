@@ -1,3 +1,4 @@
+import os
 import sys
 import tkinter as tk
 from tkinter import ttk
@@ -6,9 +7,15 @@ from idlelib.tooltip import Hovertip
 
 import sv_ttk
 
-def create_gui():
+window = None
+icon = None
+
+def create_gui(func):
+    global window, icon
     window = tk.Tk()
+    icon = tk.PhotoImage(file=os.path.join(sys._MEIPASS, './icon.png') if getattr(sys, 'frozen', False) else './icon.png')
     window.title('Statistical App Generator')
+    window.iconphoto(True, icon)
 
     frame = ttk.Frame(window)
     label = ttk.Label(frame, text='Generates a stats web app from a template')
@@ -18,7 +25,7 @@ def create_gui():
     outp_inp = createBrowseButton(frame, 'Output Directory', "Relative or absolute path where an 'app' directory should be generated containing the application", folder=True, title='Select a calculation file')
     
     btn_frame = ttk.Frame(frame)
-    gen = ttk.Button(btn_frame, text='Generate', command=lambda: window.quit())
+    gen = ttk.Button(btn_frame, text='Generate', command=lambda: func({'math_filepath': math_inp.get(), 'config': config_inp.get(), 'out': outp_inp.get()}, True))
     gen.grid(row=0, column=0, padx=5, pady=15)
     cancel = ttk.Button(btn_frame, text='Cancel', command=lambda: sys.exit(0))
     cancel.grid(row=0, column=1, padx=5, pady=15)
@@ -30,7 +37,6 @@ def create_gui():
     style.configure('small.TButton', font=(None, 7))
     window.protocol('WM_DELETE_WINDOW', lambda: sys.exit(0))
     window.mainloop()
-    return {'math_filepath': math_inp.get(), 'config': config_inp.get(), 'out': outp_inp.get()}
 
 def createBrowseButton(window, argname, help, folder=False, **kwargs):
     frame = ttk.Frame(window)
@@ -45,7 +51,7 @@ def createBrowseButton(window, argname, help, folder=False, **kwargs):
         inp.delete(0, tk.END)
         inp.insert(0, text)
     if not folder:
-        btn = ttk.Button(frame, text="Browse", command=lambda: set_text(filedialog.askopenfilename(initialdir='/', **kwargs)))
+        btn = ttk.Button(frame, text="Browse", command=lambda: set_text(filedialog.askopenfilename(**kwargs)))
     else:
         btn = ttk.Button(frame, text="Browse", command=lambda: set_text(filedialog.askdirectory(**kwargs)))
     btn.grid(row=0, column=3, padx=5)
@@ -60,12 +66,10 @@ def create_exc(exc):
     frame = ttk.Frame(window)
     label = ttk.Label(frame, text=f'An error occurred: {exc}')
     label.pack()
-    btn = ttk.Button(frame, text='OK', command=lambda: sys.exit(0))
+    btn = ttk.Button(frame, text='OK', command=lambda: window.destroy())
     btn.pack(pady=5)
     
     frame.pack(fill='x', padx=25, pady=20)
-    sv_ttk.set_theme('light')
-    window.protocol('WM_DELETE_WINDOW', lambda: sys.exit(0))
     window.mainloop()
 
 def show_success_msg(path):
@@ -79,6 +83,5 @@ def show_success_msg(path):
     btn.pack(pady=5)
     
     frame.pack(fill='x', padx=25, pady=20)
-    sv_ttk.set_theme('light')
     window.protocol('WM_DELETE_WINDOW', lambda: sys.exit(0))
     window.mainloop()

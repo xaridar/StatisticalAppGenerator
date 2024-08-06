@@ -12,7 +12,7 @@ SAG was developed by Elliot Topper at the National Institute of Standards and Te
 - To use SAG, first install the binary executable file. This file contains all neededtemplates and configuration.
 - To run, the following format must be used:
 ```
-$ generate_app [math_file] -o [out_dir] -c [config_file]
+$ sag [math_file] -o [out_dir] -c [config_file]
 ```
 These arguments are further explained in [Arguments](#arguments).
 - The newly generated web app will be created in [out_dir]/app. Navigate to this directory.
