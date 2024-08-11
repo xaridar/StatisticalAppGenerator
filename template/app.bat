@@ -1,9 +1,9 @@
 @echo off
-pip install -r requirements.txt
+python -m pip install -r requirements.txt --user
 where /q Rscript
 IF ERRORLEVEL 1 (
-    ECHO No R insttallation; skipping.
+    ECHO No R installation; skipping.
 ) ELSE (
     Rscript install.packages("shinylight", repos = "https://cloud.r-project.org")
 )
-main.py
+python main.py

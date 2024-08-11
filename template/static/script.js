@@ -1,3 +1,5 @@
+const graphObj = {};
+const descriptions = {"default": "Output"};
 
 let tab = 0;
 let tabs = $('.tab-handle').length;
@@ -92,7 +94,7 @@ const popTab = (data, tab) => {
         div.id = `output${key}`
         switch (element.type) {
             case 'base64':
-                break;
+                continue;
             case 'graph': {
                 if (!Object.keys(graphObj).includes(key)) return;
                 div.classList.add('output-graph')

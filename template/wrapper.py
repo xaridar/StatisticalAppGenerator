@@ -147,5 +147,5 @@ for key, value in out_obj.items():
         table['columns'] = [str(el) for el in table['columns']]
         output[key]['type'] = 'table'
         output[key]['table'] = table
-output['base64-plot'] = {'type': 'base64', 'data': f'data:image/png;base65,{s}'}
+output['base64-plot'] = {'type': 'base64', 'data': f'data:image/png;4,{s}'if len(s) else ''}
 print(output)

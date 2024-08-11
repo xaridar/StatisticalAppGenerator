@@ -84,14 +84,14 @@ def createInput(html, options):
             input = html.new_tag('input')
             input['type'] = options['type']
             small_string = f'{options["type"]} input'
-            input['id'] = f'{options['name']}_inp'
+            input['id'] = f'{options["name"]}_inp'
             input['name'] = options['name']
             if not options['optional']:
                 input['class'] = 'required'
             if options['type'] == 'text':
                 if options['minlength'] > 0:
                     input['minlength'] = options['minlength']
-                    if options['maxength'] is None:
+                    if options['maxlength'] is None:
                         small_string += f', minimum {options["minlength"]} characters'
                 if options['maxlength'] is not None:
                     input['maxlength'] = options['maxlength']
@@ -112,7 +112,7 @@ def createInput(html, options):
                     small_string += f', max: {options["max"]}'
         case 'select':
             input = html.new_tag('select')
-            input['id'] = f'{options['name']}_inp'
+            input['id'] = f'{options["name"]}_inp'
             input['name'] = options['name']
             if not options['optional']:
                 input['class'] = 'required'
@@ -124,6 +124,7 @@ def createInput(html, options):
             def_el['disabled'] = ''
             def_el['value'] = ''
             def_el['selected'] = ''
+            input.append(def_el)
             for option in options['options']:
                 option_el = html.new_tag('option')
                 option_el['value'] = option['value']
@@ -135,7 +136,7 @@ def createInput(html, options):
             ctr = html.new_tag('div')
             inp = html.new_tag('input')
             inp['type'] = options['items']['type']
-            inp['id'] = f'{options['name']}_'
+            inp['id'] = f'{options["name"]}_'
             inner_small_string = f'{options["type"]} input'
             inp['name'] = options['name']
             if not options['optional']:
@@ -143,7 +144,7 @@ def createInput(html, options):
             if options['items']['type'] == 'text':
                 if options['items']['minlength'] > 0:
                     inp['minlength'] = options['items']['minlength']
-                    if options['items']['maxength'] is None:
+                    if options['items']['maxlength'] is None:
                         inner_small_string += f', minimum {options["items"]["minlength"]} characters'
                 if options['items']['maxlength'] is not None:
                     inp['maxlength'] = options['items']['maxlength']
@@ -192,7 +193,7 @@ def createInput(html, options):
                 it_ctr.find('label').find('span').string += str(idx)
                 input.append(it_ctr)
 
-            input['id'] = f'{options['name']}_inp'
+            input['id'] = f'{options["name"]}_inp'
             input['class'] = 'option_array'
 
     div = html.new_tag('div')
@@ -327,7 +328,7 @@ def gen(args, gui_mode):
         for option in cf['output']['format']:
             match option['type']:
                 case 'graph':
-                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{"|".join([col['column_name'] for col in option["y_axis"]] if isinstance(option['y_axis'], list) else "!")})')
+                    output_strs.append(f'{option["name"]}:graph({option["x_axis"]}/{"|".join([col["column_name"] for col in option["y_axis"]] if isinstance(option["y_axis"], list) else "!")})')
                     graph_obj[option["name"]] = {'x': option["x_axis"], 'y': option["y_axis"] if not isinstance(option["y_axis"], list) else [col['plot_type'] for col in option["y_axis"]], 'legend': option['legend'], 'x_label': option['x_label'] or option['x_axis'], 'y_label': option['y_label']}
                 case 'table':
                     output_strs.append(f'{option["name"]}:table({option["precision"] if not isinstance(option["precision"], list) else "|".join(map(str, option["precision"]))})')
@@ -397,7 +398,7 @@ def gen(args, gui_mode):
         if bar:
             bar.text(f'Copying {args["math_filepath"]} to app...')
         # copies math file into app
-        copyfile(args['math_filepath'], os.path.join(outp_path, f'calculation.{args['math_filepath'].split('.')[-1]}'))
+        copyfile(args['math_filepath'], os.path.join(outp_path, f'calculation.{args["math_filepath"].split(".")[-1]}'))
         if bar:
             bar()
 

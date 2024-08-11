@@ -37,7 +37,7 @@ def upload():
             return jsonify(success=False, error=f'Bad filetype (should be CSV): {file.filename}')
         csv = pd.read_csv(file.stream)
         if os.getenv(f'XVAR_{name}') not in csv.columns or os.getenv(f'YVAR_{name}') not in csv.columns:
-            return jsonify(success=False, error=f'Missing column(s) in {file.filename}; should have {os.getenv(f'XVAR_{name}')} and {os.getenv(f'YVAR_{name}')}')
+            return jsonify(success=False, error=f'Missing column(s) in {file.filename}; should have {os.getenv(f"XVAR_{name}")} and {os.getenv(f"YVAR_{name}")}')
         filename = f'{name}_{id}.csv'
         file.stream.seek(0)
         file.save(os.path.join('temp', filename))
@@ -143,7 +143,7 @@ def upload():
     if len(filepaths) == 0:
         id = 'noid'
     
-    command = f'{os.getenv('LANGUAGE')} wrapper.{os.getenv('EXTENSION')} calculation.{os.getenv('EXTENSION')} {os.getenv('METHOD')} {os.getenv('OUTPUT_STRING')} {id}'
+    command = f'{os.getenv("LANGUAGE")} wrapper.{os.getenv("EXTENSION")} calculation.{os.getenv("EXTENSION")} {os.getenv("METHOD")} {os.getenv("OUTPUT_STRING")} {id}'
     args = command.split(' ') + args
     res = subprocess.check_output(args)
     
